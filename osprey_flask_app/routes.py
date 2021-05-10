@@ -1,61 +1,41 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, send_file, send_from_directory
-from urllib.parse import unquote
+from flask import Blueprint, request, send_file, send_from_directory
+from .run_rvic import run_full_rvic
+# from urllib.parse import unquote
 import os
 
 data = Blueprint("data", __name__, url_prefix="/data")
 
 
 @data.route(
-    "/<string:case_id>:<string:grid_id>:<string:run_startdate>:<string:stop_date>:\
-<path:pour_points>:<path:uh_box>:<path:routing>:<path:domain>:<path:input_forcings>:\
-<string:loglevel>:<int:version>:<int:np>:<path:params_config_file>:<string:params_config_dict>:\
-<path:convolve_config_file>:<string:convolve_config_dict>",
+    "/test",
     methods=["GET", "POST"],
 )
-def osprey_route(
-    case_id,
-    grid_id,
-    run_startdate,
-    stop_date,
-    pour_points=None,
-    uh_box=None,
-    routing=None,
-    domain=None,
-    input_forcings=None,
-    loglevel="INFO",
-    version=1,
-    np=1,
-    params_config_file=None,
-    params_config_dict=None,
-    convolve_config_file=None,
-    convolve_config_dict=None,
-):
-
+def osprey_route():
+    args = request.args
+    version = True if args.get("version", default=1) == 1 else False
     arg_dict = {
-        "case_id": case_id,
-        "grid_id": grid_id,
-        "run_startdate": run_startdate,
-        "stop_date": stop_date,
-        "pour_points": pour_points,
-        "uh_box": uh_box,
-        "routing": routing,
-        "domain": domain,
-        "input_forcings": input_forcings,
-        "loglevel": loglevel,
+        "case_id": args.get("case_id"),
+        "grid_id": args.get("grid_id"),
+        "run_startdate": args.get("run_startdate"),
+        "stop_date": args.get("stop_date"),
+        "pour_points": args.get("pour_points"),
+        "uh_box": args.get("uh_box"),
+        "routing": args.get("routing"),
+        "domain": args.get("domain"),
+        "input_forcings": args.get("input_forcings"),
+        "loglevel": args.get("loglevel", default="INFO"),
         "version": version,
-        "np": np,
-        "params_config_file": params_config_file,
-        "params_config_dict": params_config_dict,
-        "convolve_config_file": convolve_config_file,
-        "convolve_config_dict": convolve_config_dict,
+        "np": args.get("np", default=1),
+        "params_config_file": args.get("params_config_file"),
+        "params_config_dict": args.get("params_config_dict"),
+        "convolve_config_file": args.get("convolve_config_file"),
+        "convolve_config_dict": args.get("convolve_config_dict"),
     }
-
-    outpath = arg_dict["routing"]  # Test getting input file
-    # outpath = run_full_rvic(arg_dict)
-    return send_from_directory(
-        "/home/eyvorchuk/Documents/osprey/tests/data/samples",
+    # outpath = arg_dict["domain"]  # Test getting input file
+    outpath = run_full_rvic(arg_dict)
+    return send_file(
         outpath,
         mimetype="application/x-netcdf",
         as_attachment=True,
