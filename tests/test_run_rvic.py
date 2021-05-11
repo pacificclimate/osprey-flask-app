@@ -31,5 +31,5 @@ import os
 )
 def test_run_full_rvic(kwargs):
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-        outpath = compiler.orc(filepath, targets, outdir="", outfile=outfile.name)
+        outpath = run_rvic.run_full_rvic(kwargs)
         assert os.path.isfile("/tmp/" + outpath)
