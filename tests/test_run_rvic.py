@@ -24,12 +24,37 @@ import os
                     "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
                 ),
                 "params_config_file": "/home/eyvorchuk/Documents/osprey/tests/data/configs/parameters.cfg",
+                "params_config_dict": None,
                 "convolve_config_file": "/home/eyvorchuk/Documents/osprey/tests/data/configs/convolve.cfg",
+                "convolve_config_dict": None,
             }
-        )
+        ),
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "COLUMBIA",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "pour_points": url_path(
+                    "sample_pour.txt", "http", "climate_explorer_data_prep"
+                ),
+                "uh_box": "/home/eyvorchuk/Documents/osprey/tests/data/samples/uhbox.csv",
+                "routing": url_path(
+                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
+                ),
+                "domain": "/home/eyvorchuk/Documents/osprey/tests/data/samples/sample_routing_domain.nc",
+                "input_forcings": url_path(
+                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
+                ),
+                "params_config_file": "/home/eyvorchuk/Documents/osprey/tests/data/configs/parameters.cfg",
+                "params_config_dict": None,
+                "convolve_config_file": "/home/eyvorchuk/Documents/osprey/tests/data/configs/convolve.cfg",
+                "convolve_config_dict": None,
+            }
+        ),
     ],
 )
 def test_run_full_rvic(kwargs):
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
         outpath = run_rvic.run_full_rvic(kwargs)
-        assert os.path.isfile("/tmp/" + outpath)
+        assert outpath is not None

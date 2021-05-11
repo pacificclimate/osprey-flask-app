@@ -1,9 +1,8 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, send_file, send_from_directory
+from flask import Blueprint, request, send_file
 from .run_rvic import run_full_rvic
 
-# from urllib.parse import unquote
 import os
 
 data = Blueprint("data", __name__, url_prefix="/data")
