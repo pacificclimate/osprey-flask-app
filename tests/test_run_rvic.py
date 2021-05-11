@@ -4,6 +4,7 @@ from osprey_flask_app import run_rvic
 from wps_tools.testing import url_path
 from tempfile import NamedTemporaryFile
 import os
+import requests
 
 
 @pytest.mark.online
@@ -55,6 +56,9 @@ import os
     ],
 )
 def test_run_full_rvic(kwargs):
+    outpath = run_rvic.run_full_rvic(kwargs)
+    outpath_url = requests.get(outpath)
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-        outpath = run_rvic.run_full_rvic(kwargs)
-        assert outpath is not None
+        outfile.write(outpath_url.content)
+        assert os.path.isfile(outfile.name)
+        outfile.close()

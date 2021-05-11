@@ -4,6 +4,8 @@ from flask import Blueprint, request, send_file
 from .run_rvic import run_full_rvic
 
 import os
+import requests
+from tempfile import NamedTemporaryFile
 
 data = Blueprint("data", __name__, url_prefix="/data")
 
@@ -35,9 +37,12 @@ def osprey_route():
     }
     # outpath = arg_dict["domain"]  # Test getting input file
     outpath = run_full_rvic(arg_dict)
-    return send_file(
-        outpath,
-        mimetype="application/x-netcdf",
-        as_attachment=True,
-        attachment_filename=os.path.basename(outpath),
-    )
+    outpath_url = requests.get(outpath)
+    with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
+        outfile.write(outpath_url.content)
+        return send_file(
+            outfile.name,
+            mimetype="application/x-netcdf",
+            as_attachment=True,
+            attachment_filename=os.path.basename(outpath),
+        )
