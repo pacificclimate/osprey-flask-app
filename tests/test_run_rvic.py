@@ -18,16 +18,26 @@ import requests
                 "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": resource_filename(__name__, "data/samples/sample_pour.txt"),
+                "pour_points": resource_filename(
+                    __name__, "data/samples/sample_pour.txt"
+                ),
                 "uh_box": resource_filename(__name__, "data/samples/uhbox.csv"),
-                "routing": resource_filename(__name__, "data/samples/sample_flow_parameters.nc"),
-                "domain": resource_filename(__name__, "data/samples/sample_routing_domain.nc"),
+                "routing": resource_filename(
+                    __name__, "data/samples/sample_flow_parameters.nc"
+                ),
+                "domain": resource_filename(
+                    __name__, "data/samples/sample_routing_domain.nc"
+                ),
                 "input_forcings": url_path(
                     "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
                 ),
-                "params_config_file": resource_filename(__name__, "data/configs/parameters.cfg"),
+                "params_config_file": resource_filename(
+                    __name__, "data/configs/parameters.cfg"
+                ),
                 "params_config_dict": None,
-                "convolve_config_file": resource_filename(__name__, "data/configs/convolve.cfg"),
+                "convolve_config_file": resource_filename(
+                    __name__, "data/configs/convolve.cfg"
+                ),
                 "convolve_config_dict": None,
             }
         ),
@@ -44,13 +54,19 @@ import requests
                 "routing": url_path(
                     "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
                 ),
-                "domain": resource_filename(__name__, "data/samples/sample_routing_domain.nc"),
+                "domain": resource_filename(
+                    __name__, "data/samples/sample_routing_domain.nc"
+                ),
                 "input_forcings": url_path(
                     "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
                 ),
-                "params_config_file": resource_filename(__name__, "data/configs/parameters.cfg"),
+                "params_config_file": resource_filename(
+                    __name__, "data/configs/parameters.cfg"
+                ),
                 "params_config_dict": None,
-                "convolve_config_file": resource_filename(__name__, "data/configs/convolve.cfg"),
+                "convolve_config_file": resource_filename(
+                    __name__, "data/configs/convolve.cfg"
+                ),
                 "convolve_config_dict": None,
             }
         ),
