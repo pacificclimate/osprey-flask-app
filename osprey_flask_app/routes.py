@@ -2,6 +2,7 @@
 
 from flask import Blueprint, request, send_file
 from .run_rvic import run_full_rvic
+from .utils import process_args
 
 import os
 import requests
@@ -26,36 +27,42 @@ def osprey_route():
         7. routing (path): Routing inputs netCDF.
         8. domain (path): CESM compliant domain file.
         9. input_forcings (path): Land data netCDF forcings.
-        10. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET'). Default is 'INFO'.
+        10. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET').
+            Default is 'INFO'.
         11. version (int): Return RVIC version string (1) or not (0). Default is 1.
         12. np (int): Number of processors used to run job. Default is 1.
         13. params_config_file (path): Path to input configuration file Parameters process.
-        14. params_config_dict (str): Dictionary containing input configuration for Parameters process (mutually exclusive with params_config_file).
+        14. params_config_dict (str): Dictionary containing input configuration for Parameters process
+            (mutually exclusive with params_config_file).
         15. convolve_config_file (path): Path to input configuration file Convolution process.
-        16. convolve_config_dict (str): Dictionary containing input configuration for Convolution process (mutually exclusive with convolve_config_file).
+        16. convolve_config_dict (str): Dictionary containing input configuration for Convolution process
+            (mutually exclusive with convolve_config_file).
 
     Returns output netCDF file after Convolution process.
     """
     args = request.args
-    version = True if args.get("version", default=1) == 1 else False
-    arg_dict = {
-        "case_id": args.get("case_id"),
-        "grid_id": args.get("grid_id"),
-        "run_startdate": args.get("run_startdate"),
-        "stop_date": args.get("stop_date"),
-        "pour_points": args.get("pour_points"),
-        "uh_box": args.get("uh_box"),
-        "routing": args.get("routing"),
-        "domain": args.get("domain"),
-        "input_forcings": args.get("input_forcings"),
-        "loglevel": args.get("loglevel", default="INFO"),
-        "version": version,
-        "np": args.get("np", default=1),
-        "params_config_file": args.get("params_config_file"),
-        "params_config_dict": args.get("params_config_dict"),
-        "convolve_config_file": args.get("convolve_config_file"),
-        "convolve_config_dict": args.get("convolve_config_dict"),
-    }
+
+    # Process args (format is <arg:default_value>)
+    exp_args = [
+        "case_id",
+        "grid_id",
+        "run_startdate",
+        "stop_date",
+        "pour_points",
+        "uh_box",
+        "routing",
+        "domain",
+        "input_forcings",
+        "version:1",
+        "loglevel:INFO",
+        "np:1",
+        "params_config_file",
+        "params_config_dict",
+        "convolve_config_file",
+        "convolve_config_dict",
+    ]
+    arg_dict = process_args(args, exp_args)
+
     outpath = run_full_rvic(arg_dict)
     outpath_url = requests.get(outpath)
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
