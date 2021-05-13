@@ -6,7 +6,7 @@ This application is a flask microservice to interact with PCIC's [osprey](https:
 We use `make` to handle the installation process. Copy and paste this section into your terminal:
 ```
 make
-source /tmp/osprey-flask-venv/bin/activate
+source /tmp/osprey-flask-app-venv/bin/activate
 ```
 
 ## Run App
