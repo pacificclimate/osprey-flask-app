@@ -53,18 +53,26 @@ def osprey_route():
         "routing",
         "domain",
         "input_forcings",
-        "version:1",
-        "loglevel:INFO",
-        "np:1",
         "params_config_file",
         "params_config_dict",
         "convolve_config_file",
         "convolve_config_dict",
+        "version:1",
+        "loglevel:INFO",
+        "np:1",
     ]
     arg_dict = process_args(args, exp_args)
 
-    outpath = run_full_rvic(arg_dict)
-    outpath_url = requests.get(outpath)
+    try:
+        outpath = run_full_rvic(arg_dict)
+    except Exception as e:
+        raise ProcessError(f"{type(e).__name__}: {e}")
+
+    try:
+        outpath_url = requests.get(outpath)
+    except requests.exceptions.ConnectionError as e:
+        raise ProcessError(f"{type(e).__name__}: {e}")
+
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
         outfile.write(outpath_url.content)
         return send_file(

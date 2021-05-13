@@ -29,7 +29,7 @@ def process_args(args, exp_args):
             # Convert default value to int if possible
             try:
                 default = int(default)
-            except:
+            except ValueError:
                 pass
 
             arg_dict[arg] = args.get(arg, default=default)
