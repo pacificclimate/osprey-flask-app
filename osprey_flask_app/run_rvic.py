@@ -2,8 +2,7 @@ from birdy import WPSClient
 from wps_tools.testing import get_target_url, url_path
 
 
-def run_full_rvic(arg_dict):
-    url = get_target_url("osprey")
+def run_full_rvic(arg_dict, url=get_target_url("osprey")):
     osprey = WPSClient(url)
 
     if "docker" not in arg_dict["pour_points"]:
