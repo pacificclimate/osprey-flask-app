@@ -34,6 +34,11 @@ setup(
     license="GNU General Public License v3",
     keywords="osprey flask",
     packages=["osprey_flask_app"],
+    package_data={
+        "osprey-flask-app": ["tests/configs/*.cfg", "tests/data/samples/*.cfg"],
+        "tests": ["configs/*.cfg", "data/samples/*.cfg"],
+    },
+    include_package_data=True,
     install_requires=reqs,
     extras_require={
         "dev": test_reqs,

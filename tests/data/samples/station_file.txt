@@ -1,0 +1,2 @@
+1 station 0 0 0
+/tmp/pywps_process_h82e1s36/sample.uh_s2

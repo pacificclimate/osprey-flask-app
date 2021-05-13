@@ -3,6 +3,7 @@ import pytest
 from osprey_flask_app import run_rvic
 from wps_tools.testing import url_path
 from tempfile import NamedTemporaryFile
+from pkg_resources import resource_filename
 import os
 import requests
 
@@ -17,16 +18,16 @@ import requests
                 "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": "/home/eyvorchuk/Documents/osprey/tests/data/samples/sample_pour.txt",
-                "uh_box": "/home/eyvorchuk/Documents/osprey/tests/data/samples/uhbox.csv",
-                "routing": "/home/eyvorchuk/Documents/osprey/tests/data/samples/sample_flow_parameters.nc",
-                "domain": "/home/eyvorchuk/Documents/osprey/tests/data/samples/sample_routing_domain.nc",
+                "pour_points": resource_filename(__name__, "data/samples/sample_pour.txt"),
+                "uh_box": resource_filename(__name__, "data/samples/uhbox.csv"),
+                "routing": resource_filename(__name__, "data/samples/sample_flow_parameters.nc"),
+                "domain": resource_filename(__name__, "data/samples/sample_routing_domain.nc"),
                 "input_forcings": url_path(
                     "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
                 ),
-                "params_config_file": "/home/eyvorchuk/Documents/osprey/tests/data/configs/parameters.cfg",
+                "params_config_file": resource_filename(__name__, "data/configs/parameters.cfg"),
                 "params_config_dict": None,
-                "convolve_config_file": "/home/eyvorchuk/Documents/osprey/tests/data/configs/convolve.cfg",
+                "convolve_config_file": resource_filename(__name__, "data/configs/convolve.cfg"),
                 "convolve_config_dict": None,
             }
         ),
@@ -39,17 +40,17 @@ import requests
                 "pour_points": url_path(
                     "sample_pour.txt", "http", "climate_explorer_data_prep"
                 ),
-                "uh_box": "/home/eyvorchuk/Documents/osprey/tests/data/samples/uhbox.csv",
+                "uh_box": resource_filename(__name__, "data/samples/uhbox.csv"),
                 "routing": url_path(
                     "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
                 ),
-                "domain": "/home/eyvorchuk/Documents/osprey/tests/data/samples/sample_routing_domain.nc",
+                "domain": resource_filename(__name__, "data/samples/sample_routing_domain.nc"),
                 "input_forcings": url_path(
                     "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
                 ),
-                "params_config_file": "/home/eyvorchuk/Documents/osprey/tests/data/configs/parameters.cfg",
+                "params_config_file": resource_filename(__name__, "data/configs/parameters.cfg"),
                 "params_config_dict": None,
-                "convolve_config_file": "/home/eyvorchuk/Documents/osprey/tests/data/configs/convolve.cfg",
+                "convolve_config_file": resource_filename(__name__, "data/configs/convolve.cfg"),
                 "convolve_config_dict": None,
             }
         ),
