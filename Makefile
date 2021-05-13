@@ -1,7 +1,7 @@
 # Configuration
 APP_ROOT := $(abspath $(lastword $(MAKEFILE_LIST))/..)
-APP_NAME := quail
-VENV?=/tmp/quail-venv
+APP_NAME := osprey-flask-app
+VENV?=/tmp/osprey-flask-app-venv
 PYTHON=${VENV}/bin/python3
 PIP=${VENV}/bin/pip
 export PIP_INDEX_URL=https://pypi.pacificclimate.org/simple
@@ -13,7 +13,7 @@ DEV_PORT ?= $(shell bash -c 'read -ep "Target port: " port; echo $$port')
 # end of configuration
 
 .PHONY: all
-all: apt develop install-r-pkg test-all clean-test test-notebooks-prod
+all: develop test-all clean-test
 
 .PHONY: help
 help:
