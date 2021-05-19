@@ -3,6 +3,7 @@
 from flask import Blueprint, request, send_file
 from .run_rvic import run_full_rvic
 from .utils import process_args
+from pywps.app.exceptions import ProcessError
 
 import os
 import requests

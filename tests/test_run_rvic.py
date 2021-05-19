@@ -8,6 +8,15 @@ import os
 import requests
 
 
+def full_rvic_test(kwargs):
+    outpath = run_rvic.run_full_rvic(kwargs)
+    outpath_url = requests.get(outpath)
+    with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
+        outfile.write(outpath_url.content)
+        assert os.path.isfile(outfile.name)
+        outfile.close()
+
+
 @pytest.mark.online
 @pytest.mark.parametrize(
     ("kwargs"),
@@ -72,10 +81,5 @@ import requests
         ),
     ],
 )
-def test_run_full_rvic(kwargs):
-    outpath = run_rvic.run_full_rvic(kwargs)
-    outpath_url = requests.get(outpath)
-    with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-        outfile.write(outpath_url.content)
-        assert os.path.isfile(outfile.name)
-        outfile.close()
+def test_run_full_rvic_online(kwargs):
+    full_rvic_test(kwargs)
