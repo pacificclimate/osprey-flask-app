@@ -18,7 +18,31 @@ def get_filename_from_path(path):
     return path.split("/")[-1]
 
 
-def process_args(args, exp_args):
+def create_arg_dict(args):
+    """Create dictionary of arguments from request url to pass to osprey.
+    Parameters
+        1. args (request.args): arguments given by url
+    """
+    
+    # Expected url arguments (format is <arg:default_value>)
+    exp_args = [
+        "case_id",
+        "grid_id",
+        "run_startdate",
+        "stop_date",
+        "pour_points",
+        "uh_box",
+        "routing",
+        "domain",
+        "input_forcings",
+        "params_config_file",
+        "params_config_dict",
+        "convolve_config_file",
+        "convolve_config_dict",
+        "version:1",
+        "loglevel:INFO",
+        "np:1",
+    ]
     arg_dict = {}
     for arg in exp_args:
         if ":" not in arg:
