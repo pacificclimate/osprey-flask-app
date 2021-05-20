@@ -14,7 +14,6 @@ def full_rvic_test(kwargs):
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
         outfile.write(outpath_url.content)
         assert os.path.isfile(outfile.name)
-        outfile.close()
 
 
 @pytest.mark.online
@@ -28,24 +27,24 @@ def full_rvic_test(kwargs):
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "pour_points": resource_filename(
-                    __name__, "data/samples/sample_pour.txt"
+                    "tests", "data/samples/sample_pour.txt"
                 ),
-                "uh_box": resource_filename(__name__, "data/samples/uhbox.csv"),
+                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
                 "routing": resource_filename(
-                    __name__, "data/samples/sample_flow_parameters.nc"
+                    "tests", "data/samples/sample_flow_parameters.nc"
                 ),
                 "domain": resource_filename(
-                    __name__, "data/samples/sample_routing_domain.nc"
+                    "tests", "data/samples/sample_routing_domain.nc"
                 ),
                 "input_forcings": url_path(
                     "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
                 ),
                 "params_config_file": resource_filename(
-                    __name__, "data/configs/parameters.cfg"
+                    "tests", "data/configs/parameters.cfg"
                 ),
                 "params_config_dict": None,
                 "convolve_config_file": resource_filename(
-                    __name__, "data/configs/convolve.cfg"
+                    "tests", "data/configs/convolve.cfg"
                 ),
                 "convolve_config_dict": None,
             }
@@ -59,22 +58,22 @@ def full_rvic_test(kwargs):
                 "pour_points": url_path(
                     "sample_pour.txt", "http", "climate_explorer_data_prep"
                 ),
-                "uh_box": resource_filename(__name__, "data/samples/uhbox.csv"),
+                "uh_box": resource_filename("tests, "data/samples/uhbox.csv"),
                 "routing": url_path(
                     "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
                 ),
                 "domain": resource_filename(
-                    __name__, "data/samples/sample_routing_domain.nc"
+                    "tests", "data/samples/sample_routing_domain.nc"
                 ),
                 "input_forcings": url_path(
                     "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
                 ),
                 "params_config_file": resource_filename(
-                    __name__, "data/configs/parameters.cfg"
+                    "tests", "data/configs/parameters.cfg"
                 ),
                 "params_config_dict": None,
                 "convolve_config_file": resource_filename(
-                    __name__, "data/configs/convolve.cfg"
+                    "tests", "data/configs/convolve.cfg"
                 ),
                 "convolve_config_dict": None,
             }
