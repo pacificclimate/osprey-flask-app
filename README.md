@@ -3,7 +3,7 @@
 This application is a flask microservice to interact with PCIC's [osprey](https://github.com/pacificclimate/osprey#readme) bird, which runs the RVIC streamflow package as a WPS process.
 
 ## Installation
-We use `make` to handle the installation process. Copy and paste this section into your terminal:
+We use `make` to handle the installation process and to initialize the environment variables needed for the app to run. Copy and paste this section into your terminal:
 ```
 make
 source /tmp/osprey-flask-app-venv/bin/activate
@@ -11,15 +11,7 @@ source /tmp/osprey-flask-app-venv/bin/activate
 
 ## Run App
 
-Before the `Flask` app can be started, an environment variable must be initialized using the following command:
-```
-export FLASK_APP=wsgi.py
-```
-
-Optionally, the app can be run in `development` mode using
-```
-export FLASK_ENV=development
-```
+In order to handle environment variables on their own, `make run` can be used to initialize the variable that allows the app to be started, and `make develop` can be used to allow the app to be run in `development` mode.
 
 After initializing these variables, the app can be started by running the following command (note that `host` and `port` are optional arguments)
 ```
