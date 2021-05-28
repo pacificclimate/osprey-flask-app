@@ -9,7 +9,7 @@ def run_full_rvic(arg_dict, url=get_target_url("osprey")):
         arg_dict["pour_points"] = open(arg_dict["pour_points"]).read()
     if "docker" not in arg_dict["uh_box"]:
         arg_dict["uh_box"] = open(arg_dict["uh_box"]).read()
-    
+
     try:
         output_full = osprey.full_rvic(
             case_id=arg_dict["case_id"],
