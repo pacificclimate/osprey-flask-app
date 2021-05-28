@@ -59,18 +59,18 @@ clean-build:
 	@-rm -fr build/
 	@-rm -fr dist/
 	@-rm -fr .eggs/
-	@-find . -name '*.egg-info' -exec rm -fr {} +
-	@-find . -name '*.egg' -exec rm -f {} +
-	@-find . -name '*.log' -exec rm -fr {} +
-	@-find . -name '*.sqlite' -exec rm -fr {} +
+	@-find . -name '*.egg-info' -delete
+	@-find . -name '*.egg' -delete
+	@-find . -name '*.log' -delete
+	@-find . -name '*.sqlite' -delete
 
 .PHONY: clean-pyc
 clean-pyc:
 	@echo "Removing Python file artifacts ..."
-	@-find . -name '*.pyc' -exec rm -f {} +
-	@-find . -name '*.pyo' -exec rm -f {} +
-	@-find . -name '*~' -exec rm -f {} +
-	@-find . -name '__pycache__' -exec rm -fr {} +
+	@-find . -name '*.pyc' -delete
+	@-find . -name '*.pyo' -delete
+	@-find . -name '*~' -delete
+	@-find . -name '__pycache__' -delete
 
 .PHONY: clean-test
 clean-test:
