@@ -2,7 +2,7 @@
 
 from flask import Blueprint, request, send_file
 from .run_rvic import run_full_rvic
-from .utils import create_arg_dict
+from .utils import create_full_arg_dict
 from pywps.app.exceptions import ProcessError
 
 import os
@@ -43,12 +43,12 @@ def osprey_route():
     Returns output netCDF file after Convolution process.
     """
     args = request.args
-    arg_dict = create_arg_dict(args)
+    arg_dict = create_full_arg_dict(args)
     outpath = run_full_rvic(arg_dict)
     try:
         outpath_url = requests.get(outpath)
     except requests.exceptions.ConnectionError as e:
-        raise ProcessError(f"{type(e).__name__}: {e}")
+        raise
 
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
         outfile.write(outpath_url.content)

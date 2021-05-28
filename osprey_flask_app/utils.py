@@ -18,8 +18,9 @@ def get_filename_from_path(path):
     return path.split("/")[-1]
 
 
-def create_arg_dict(args):
-    """Create dictionary of arguments from request url to pass to osprey.
+def create_full_arg_dict(args):
+    """Create full dictionary of arguments from request url to pass to osprey.
+    Add 'None' values for missing arguments.
     Parameters
         1. args (request.args): arguments given by url
     """
