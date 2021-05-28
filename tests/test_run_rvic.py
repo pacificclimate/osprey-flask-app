@@ -58,7 +58,7 @@ def full_rvic_test(kwargs):
                 "pour_points": url_path(
                     "sample_pour.txt", "http", "climate_explorer_data_prep"
                 ),
-                "uh_box": resource_filename("tests, "data/samples/uhbox.csv"),
+                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
                 "routing": url_path(
                     "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
                 ),
