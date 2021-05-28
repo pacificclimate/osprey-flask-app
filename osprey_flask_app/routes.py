@@ -38,7 +38,7 @@ def osprey_route():
         15. convolve_config_file (path): Path to input configuration file Convolution process.
         16. convolve_config_dict (str): Dictionary containing input configuration for Convolution process
             (mutually exclusive with convolve_config_file).
-    
+
     Example url: http://127.0.0.1:5000/data/?case_id=sample&grid_id=COLUMBIA&run_startdate=2011-12-01-00&stop_date=2012-12-31&pour_points=      sample_pour.txt&uh_box=uhbox.csv&routing=sample_flow_parameters.nc&domain=/sample_routing_domain.nc&input_forcings=sample_input_forcings.nc&loglevel=DEBUG&params_config_file=parameters.cfg&convolve_config_file=convolve.cfg
     Returns output netCDF file after Convolution process.
     """

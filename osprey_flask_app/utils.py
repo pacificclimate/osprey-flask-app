@@ -24,7 +24,7 @@ def create_full_arg_dict(args):
     Parameters
         1. args (request.args): arguments given by url
     """
-    
+
     # Expected url arguments (format is <arg:default_value>)
     exp_args = [
         "case_id",
