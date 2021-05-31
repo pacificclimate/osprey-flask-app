@@ -82,3 +82,23 @@ def full_rvic_test(kwargs):
 )
 def test_run_full_rvic_online(kwargs):
     full_rvic_test(kwargs)
+
+
+@pytest.mark.parametrize(
+    ("files"),
+    [
+        (
+            [
+                resource_filename("tests", "data/samples/sample_pour.txt"),
+                resource_filename("tests", "data/samples/uhbox.csv"),
+                resource_filename("tests", "data/samples/sample_routing_domain.nc"),
+                resource_filename("tests", "data/samples/sample_input_forcings.nc"),
+                resource_filename("tests", "data/configs/parameters.cfg"),
+                resource_filename("tests", "data/configs/convolve.cfg"),
+            ]
+        )
+    ],
+)
+def test_resource_filename(files):
+    for f in files:
+        assert os.path.isfile(f)
