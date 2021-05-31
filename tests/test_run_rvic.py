@@ -91,6 +91,7 @@ def test_run_full_rvic_online(kwargs):
             [
                 resource_filename("tests", "data/samples/sample_pour.txt"),
                 resource_filename("tests", "data/samples/uhbox.csv"),
+                resource_filename("tests", "data/samples/sample_flow_parameters.nc"),
                 resource_filename("tests", "data/samples/sample_routing_domain.nc"),
                 resource_filename("tests", "data/samples/sample_input_forcings.nc"),
                 resource_filename("tests", "data/configs/parameters.cfg"),
