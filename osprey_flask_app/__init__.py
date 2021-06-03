@@ -7,8 +7,8 @@ def create_app(config="config.ProdConfig"):
     app.config.from_object(config)
 
     with app.app_context():
-        from .routes import data
+        from .routes import osprey
 
-        app.register_blueprint(data)
+        app.register_blueprint(osprey)
 
         return app

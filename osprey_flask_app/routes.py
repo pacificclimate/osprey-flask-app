@@ -1,6 +1,6 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, send_file
+from flask import Blueprint, request, Response, send_file
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict
 from pywps.app.exceptions import ProcessError
@@ -8,15 +8,16 @@ from pywps.app.exceptions import ProcessError
 import os
 import requests
 from tempfile import NamedTemporaryFile
+import datetime
 
-data = Blueprint("data", __name__, url_prefix="/data")
+osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
 
 
-@data.route(
-    "/",
+@osprey.route(
+    "/input",
     methods=["GET", "POST"],
 )
-def osprey_route():
+def input_route():
     """Provide route to get input parameters for full_rvic process.
     Expected inputs (given in url)
         1. case_id (str): Case ID for the RVIC process
@@ -43,18 +44,41 @@ def osprey_route():
     Returns output netCDF file after Convolution process.
     """
     args = request.args
-    arg_dict = create_full_arg_dict(args)
-    outpath = run_full_rvic(arg_dict)
     try:
-        outpath_url = requests.get(outpath)
-    except requests.exceptions.ConnectionError as e:
-        raise
+        arg_dict = create_full_arg_dict(args)
+        datetime.datetime.strptime(arg_dict["run_startdate"], "%Y-%m-%d-%H")
+        datetime.datetime.strptime(arg_dict["stop_date"], "%Y-%m-%d")
+        file_list = ["pour_points", "uh_box", "routing", "domain"]
+        for f in file_list:
+            open(arg_dict[f], "r")
 
-    with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-        outfile.write(outpath_url.content)
-        return send_file(
-            outfile.name,
-            mimetype="application/x-netcdf",
-            as_attachment=True,
-            attachment_filename=os.path.basename(outpath),
+        arg_dict_str = ""
+        for arg in arg_dict.keys():
+            arg_dict_str += str(arg) + ":" + str(arg_dict[arg]) + "\n"
+        return Response(arg_dict_str, status=200)
+    except ValueError:
+        return Response(
+            "Invalid date format, must be in yyyy-mm-dd or yyyy-mm-dd-hh", status=400
         )
+    except FileNotFoundError as not_found:
+        return Response(f"File not found: {not_found.filename}", status=400)
+    # outpath = run_full_rvic(arg_dict)
+    # try:
+    #    outpath_url = requests.get(outpath)
+    # except requests.exceptions.ConnectionError as e:
+    #    raise
+
+    # with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
+    #    outfile.write(outpath_url.content)
+    #    return send_file(
+    #        outfile.name,
+    #        mimetype="application/x-netcdf",
+    #        as_attachment=True,
+    #        attachment_filename=os.path.basename(outpath),
+    #    )
+
+
+@osprey.route("/status", methods=["GET"])
+def status_route():
+    """Provide route to check status of RVIC process."""
+    return Response("Process is still running.", status=201)
