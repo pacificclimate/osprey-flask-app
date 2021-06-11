@@ -9,16 +9,16 @@ import os
 import requests
 from tempfile import NamedTemporaryFile
 import datetime
-import time
 import threading
-import random
+import queue
 
 osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
+que = queue.Queue()
 
 
 @osprey.route(
     "/input",
-    methods=["GET", "POST"],
+    methods=["POST", "GET"],
 )
 def input_route():
     """Provide route to get input parameters for full_rvic process.
@@ -55,16 +55,13 @@ def input_route():
         for f in file_list:
             open(arg_dict[f], "r")
 
-        arg_dict_str = ""
-        for arg in arg_dict.keys():
-            arg_dict_str += str(arg) + ":" + str(arg_dict[arg]) + "\n"
-
-        sleep_thread = threading.Thread(target=time.sleep, args=(100,))
-        sleep_thread.start()
+        rvic_thread = threading.Thread(
+            target=lambda q, arg: q.put(run_full_rvic(arg)), args=(que, arg_dict)
+        )
+        rvic_thread.start()
         return Response(
-            arg_dict_str
-            + " Check status: "
-            + url_for("osprey.status_route", thread_id=sleep_thread.native_id),
+            "RVIC Process started. Check status: "
+            + url_for("osprey.status_route", thread_id=rvic_thread.native_id),
             status=202,
         )
     except ValueError:
@@ -73,29 +70,27 @@ def input_route():
         )
     except FileNotFoundError as not_found:
         return Response(f"File not found: {not_found.filename}", status=400)
-    # rvic_task = threading.Thread(target=run_full_rvic, args=(arg_dict,))
-    # rvic_task.start()
-    # try:
-    #    outpath_url = requests.get(outpath)
-    # except requests.exceptions.ConnectionError as e:
-    #    raise
-
-    # with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-    #    outfile.write(outpath_url.content)
-    #    return send_file(
-    #        outfile.name,
-    #        mimetype="application/x-netcdf",
-    #        as_attachment=True,
-    #        attachment_filename=os.path.basename(outpath),
-    #    )
 
 
 @osprey.route("/output/<thread_id>", methods=["GET"])
 def output_route(thread_id):
-    if random.random() < 0.5:
-        return Response("Task successful.", status=200)
-    else:
-        return Response("Task failed.", status=404)
+    try:
+        outpath = que.get()
+        outpath_url = requests.get(outpath)
+    except requests.exceptions.ConnectionError as e:
+        return Response("Process has failed. " + e, status=404)
+
+    with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
+        outfile.write(outpath_url.content)
+        return Response(
+            send_file(
+                outfile.name,
+                mimetype="application/x-netcdf",
+                as_attachment=True,
+                attachment_filename=os.path.basename(outpath),
+            ),
+            status=200,
+        )
 
 
 @osprey.route("/status/<thread_id>", methods=["GET"])
