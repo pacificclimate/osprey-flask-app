@@ -1,6 +1,6 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, Response, send_file
+from flask import Blueprint, request, Response, send_file, url_for
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict
 from pywps.app.exceptions import ProcessError
@@ -9,6 +9,9 @@ import os
 import requests
 from tempfile import NamedTemporaryFile
 import datetime
+import time
+import threading
+import random
 
 osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
 
@@ -55,14 +58,23 @@ def input_route():
         arg_dict_str = ""
         for arg in arg_dict.keys():
             arg_dict_str += str(arg) + ":" + str(arg_dict[arg]) + "\n"
-        return Response(arg_dict_str, status=200)
+
+        sleep_thread = threading.Thread(target=time.sleep, args=(100,))
+        sleep_thread.start()
+        return Response(
+            arg_dict_str
+            + " Check status: "
+            + url_for("osprey.status_route", thread_id=sleep_thread.native_id),
+            status=202,
+        )
     except ValueError:
         return Response(
             "Invalid date format, must be in yyyy-mm-dd or yyyy-mm-dd-hh", status=400
         )
     except FileNotFoundError as not_found:
         return Response(f"File not found: {not_found.filename}", status=400)
-    # outpath = run_full_rvic(arg_dict)
+    # rvic_task = threading.Thread(target=run_full_rvic, args=(arg_dict,))
+    # rvic_task.start()
     # try:
     #    outpath_url = requests.get(outpath)
     # except requests.exceptions.ConnectionError as e:
@@ -78,7 +90,23 @@ def input_route():
     #    )
 
 
-@osprey.route("/status", methods=["GET"])
-def status_route():
+@osprey.route("/output/<thread_id>", methods=["GET"])
+def output_route(thread_id):
+    if random.random() < 0.5:
+        return Response("Task successful.", status=200)
+    else:
+        return Response("Task failed.", status=404)
+
+
+@osprey.route("/status/<thread_id>", methods=["GET"])
+def status_route(thread_id):
     """Provide route to check status of RVIC process."""
-    return Response("Process is still running.", status=201)
+    active_thread_ids = [str(t.native_id) for t in threading.enumerate()]
+    if thread_id in active_thread_ids:
+        return Response("Process is still running.", status=201)
+    else:
+        return Response(
+            f"Process completed. Get output: "
+            + url_for("osprey.output_route", thread_id=thread_id),
+            status=201,
+        )
