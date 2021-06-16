@@ -51,9 +51,16 @@ def input_route():
         arg_dict = create_full_arg_dict(args)
         datetime.datetime.strptime(arg_dict["run_startdate"], "%Y-%m-%d-%H")
         datetime.datetime.strptime(arg_dict["stop_date"], "%Y-%m-%d")
-        file_list = ["pour_points", "uh_box", "routing", "domain"]
+        file_list = ["pour_points", "uh_box", "routing", "domain", "input_forcings"]
         for f in file_list:
-            open(arg_dict[f], "r")
+            if "http" not in arg_dict[f]:
+                open(arg_dict[f], "r")
+            else:
+                thredds_response = requests.head(arg_dict[f])
+                if thredds_response.status_code != 200:
+                    return Response(
+                        f"File not found on THREDDS: {arg_dict[f]}", status=400
+                    )
 
         rvic_thread = threading.Thread(
             target=lambda q, arg: q.put(run_full_rvic(arg)), args=(que, arg_dict)
@@ -69,11 +76,13 @@ def input_route():
             "Invalid date format, must be in yyyy-mm-dd or yyyy-mm-dd-hh", status=400
         )
     except FileNotFoundError as not_found:
-        return Response(f"File not found: {not_found.filename}", status=400)
+        return Response(f"Local file not found: {not_found.filename}", status=400)
 
 
 @osprey.route("/output/<thread_id>", methods=["GET"])
 def output_route(thread_id):
+    if que.empty():
+        return Response("Process has failed. No output returned.", status=404)
     try:
         outpath = que.get()
         outpath_url = requests.get(outpath)
