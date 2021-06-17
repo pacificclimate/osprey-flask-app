@@ -1,5 +1,5 @@
 from birdy import WPSClient
-from wps_tools.testing import get_target_url, url_path
+from wps_tools.testing import get_target_url
 
 
 def run_full_rvic(arg_dict, url=get_target_url("osprey")):
@@ -25,7 +25,7 @@ def run_full_rvic(arg_dict, url=get_target_url("osprey")):
             convolve_config_file=arg_dict["convolve_config_file"],
             convolve_config_dict=arg_dict["convolve_config_dict"],
         )
-    except Exception as e:
+    except Exception:
         raise
 
     return output_full.get()[0]

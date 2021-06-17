@@ -3,7 +3,6 @@
 from flask import Blueprint, request, Response, send_file, url_for
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict
-from pywps.app.exceptions import ProcessError
 
 import os
 import requests
@@ -120,7 +119,7 @@ def status_route(thread_id):
         return Response("Process is still running.", status=201)
     else:
         return Response(
-            f"Process completed. Get output: "
+            "Process completed. Get output: "
             + url_for("osprey.output_route", thread_id=thread_id),
             status=201,
         )

@@ -1,12 +1,9 @@
 import pytest
 
-from osprey_flask_app import run_rvic
 from osprey_flask_app import create_app
 from wps_tools.testing import url_path
-from tempfile import NamedTemporaryFile
 from pkg_resources import resource_filename
 import os
-import requests
 
 
 @pytest.fixture
