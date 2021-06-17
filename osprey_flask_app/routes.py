@@ -90,6 +90,20 @@ def input_route():
         return Response(f"Local file not found: {not_found.filename}", status=400)
 
 
+@osprey.route("/status/<thread_id>", methods=["GET"])
+def status_route(thread_id):
+    """Provide route to check status of RVIC process."""
+    active_thread_ids = [str(t.native_id) for t in threading.enumerate()]
+    if thread_id in active_thread_ids:
+        return Response("Process is still running.", status=201)
+    else:
+        return Response(
+            "Process completed. Get output: "
+            + url_for("osprey.output_route", thread_id=thread_id),
+            status=201,
+        )
+
+
 @osprey.route("/output/<thread_id>", methods=["GET"])
 def output_route(thread_id):
     """Provide route to get streamflow output of RVIC process."""
@@ -108,18 +122,4 @@ def output_route(thread_id):
             mimetype="application/x-netcdf",
             as_attachment=True,
             download_name=os.path.basename(outpath),
-        )
-
-
-@osprey.route("/status/<thread_id>", methods=["GET"])
-def status_route(thread_id):
-    """Provide route to check status of RVIC process."""
-    active_thread_ids = [str(t.native_id) for t in threading.enumerate()]
-    if thread_id in active_thread_ids:
-        return Response("Process is still running.", status=201)
-    else:
-        return Response(
-            "Process completed. Get output: "
-            + url_for("osprey.output_route", thread_id=thread_id),
-            status=201,
         )
