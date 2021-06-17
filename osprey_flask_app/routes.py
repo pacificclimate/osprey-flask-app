@@ -7,6 +7,7 @@ from pywps.app.exceptions import ProcessError
 
 import os
 import requests
+import netCDF4
 from tempfile import NamedTemporaryFile
 import datetime
 import threading
@@ -53,13 +54,24 @@ def input_route():
         datetime.datetime.strptime(arg_dict["stop_date"], "%Y-%m-%d")
         file_list = ["pour_points", "uh_box", "routing", "domain", "input_forcings"]
         for f in file_list:
-            if "http" not in arg_dict[f]:
+            if "fileServer" in arg_dict[f]:
+                http_response = requests.head(arg_dict[f])
+                if http_response.status_code != 200:
+                    return Response(
+                        f"File not found on THREDDS using http: {arg_dict[f]}",
+                        status=400,
+                    )
+            elif "dodsC" not in arg_dict[f]:
                 open(arg_dict[f], "r")
             else:
-                thredds_response = requests.head(arg_dict[f])
-                if thredds_response.status_code != 200:
+                try:
+                    netCDF4.Dataset(
+                        arg_dict[f] + "?lon[0:1]"
+                    )  # Load tiny slice of dataset
+                except OSError:
                     return Response(
-                        f"File not found on THREDDS: {arg_dict[f]}", status=400
+                        f"File not found on THREDDS using OPeNDAP: {arg_dict[f]}",
+                        status=400,
                     )
 
         rvic_thread = threading.Thread(
@@ -81,24 +93,22 @@ def input_route():
 
 @osprey.route("/output/<thread_id>", methods=["GET"])
 def output_route(thread_id):
+    """Provide route to get streamflow output of RVIC process."""
     if que.empty():
         return Response("Process has failed. No output returned.", status=404)
     try:
         outpath = que.get()
-        outpath_url = requests.get(outpath)
+        outpath_response = requests.get(outpath)
     except requests.exceptions.ConnectionError as e:
         return Response("Process has failed. " + e, status=404)
 
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-        outfile.write(outpath_url.content)
-        return Response(
-            send_file(
-                outfile.name,
-                mimetype="application/x-netcdf",
-                as_attachment=True,
-                attachment_filename=os.path.basename(outpath),
-            ),
-            status=200,
+        outfile.write(outpath_response.content)
+        return send_file(
+            outfile.name,
+            mimetype="application/x-netcdf",
+            as_attachment=True,
+            download_name=os.path.basename(outpath),
         )
 
 

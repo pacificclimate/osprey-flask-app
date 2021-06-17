@@ -4,7 +4,6 @@ from wps_tools.testing import get_target_url, url_path
 
 def run_full_rvic(arg_dict, url=get_target_url("osprey")):
     osprey = WPSClient(url)
-
     if "docker" not in arg_dict["pour_points"]:
         arg_dict["pour_points"] = open(arg_dict["pour_points"]).read()
     if "docker" not in arg_dict["uh_box"]:
