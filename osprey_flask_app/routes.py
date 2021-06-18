@@ -2,13 +2,11 @@
 
 from flask import Blueprint, request, Response, send_file, url_for
 from .run_rvic import run_full_rvic
-from .utils import create_full_arg_dict
+from .utils import create_full_arg_dict, validate_inputs
 
 import os
 import requests
-import netCDF4
 from tempfile import NamedTemporaryFile
-import datetime
 import threading
 import queue
 
@@ -47,47 +45,20 @@ def input_route():
     Returns output netCDF file after Convolution process.
     """
     args = request.args
-    try:
-        arg_dict = create_full_arg_dict(args)
-        datetime.datetime.strptime(arg_dict["run_startdate"], "%Y-%m-%d-%H")
-        datetime.datetime.strptime(arg_dict["stop_date"], "%Y-%m-%d")
-        file_list = ["pour_points", "uh_box", "routing", "domain", "input_forcings"]
-        for f in file_list:
-            if "fileServer" in arg_dict[f]:
-                http_response = requests.head(arg_dict[f])
-                if http_response.status_code != 200:
-                    return Response(
-                        f"File not found on THREDDS using http: {arg_dict[f]}",
-                        status=400,
-                    )
-            elif "dodsC" not in arg_dict[f]:
-                open(arg_dict[f], "r")
-            else:
-                try:
-                    netCDF4.Dataset(
-                        arg_dict[f] + "?lon[0:1]"
-                    )  # Load tiny slice of dataset
-                except OSError:
-                    return Response(
-                        f"File not found on THREDDS using OPeNDAP: {arg_dict[f]}",
-                        status=400,
-                    )
+    arg_dict = create_full_arg_dict(args)
+    validate_response = validate_inputs(arg_dict)
+    if validate_response.status_code == 400:
+        return validate_response
 
-        rvic_thread = threading.Thread(
-            target=lambda q, arg: q.put(run_full_rvic(arg)), args=(que, arg_dict)
-        )
-        rvic_thread.start()
-        return Response(
-            "RVIC Process started. Check status: "
-            + url_for("osprey.status_route", thread_id=rvic_thread.native_id),
-            status=202,
-        )
-    except ValueError:
-        return Response(
-            "Invalid date format, must be in yyyy-mm-dd or yyyy-mm-dd-hh", status=400
-        )
-    except FileNotFoundError as not_found:
-        return Response(f"Local file not found: {not_found.filename}", status=400)
+    rvic_thread = threading.Thread(
+        target=lambda q, arg: q.put(run_full_rvic(arg)), args=(que, arg_dict)
+    )
+    rvic_thread.start()
+    return Response(
+        "RVIC Process started. Check status: "
+        + url_for("osprey.status_route", thread_id=rvic_thread.native_id),
+        status=202,
+    )
 
 
 @osprey.route("/status/<thread_id>", methods=["GET"])

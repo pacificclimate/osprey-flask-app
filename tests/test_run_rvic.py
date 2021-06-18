@@ -38,7 +38,6 @@ def full_rvic_test(kwargs, client, valid_input=True):
 
     output_url = status_response.data.split()[-1].decode("utf-8")
     output_response = client.get(output_url)
-    print(output_response)
     assert output_response.status_code == 200
 
 

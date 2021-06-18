@@ -1,4 +1,8 @@
 import logging
+import datetime
+import requests
+import netCDF4
+from flask import Response
 
 
 def setup_logging(log_level):
@@ -59,3 +63,49 @@ def create_full_arg_dict(args):
 
             arg_dict[arg] = args.get(arg, default=default)
     return arg_dict
+
+
+def validate_inputs(arg_dict):
+    """Check that inputs have valid values and that filepaths exist.
+    Parameters
+        1. arg_dict (dict): arguments supplied to osprey with corresponding values
+    """
+
+    # Check that dates have the right format
+    try:
+        datetime.datetime.strptime(arg_dict["run_startdate"], "%Y-%m-%d-%H")
+        datetime.datetime.strptime(arg_dict["stop_date"], "%Y-%m-%d")
+    except ValueError:
+        return Response(
+            "Invalid date format, must be in yyyy-mm-dd or yyyy-mm-dd-hh", status=400
+        )
+
+    # Check that filepaths exist
+    files = ["pour_points", "uh_box", "routing", "domain", "input_forcings"]
+    for f in files:
+        if "fileServer" in arg_dict[f]:  # THREDDS file using http
+            http_response = requests.head(arg_dict[f])
+            if http_response.status_code != 200:
+                return Response(
+                    f"File not found on THREDDS using http: {arg_dict[f]}",
+                    status=400,
+                )
+        elif "dodsC" in arg_dict[f]:  # THREDDS file using OPeNDAP
+            try:
+                netCDF4.Dataset(arg_dict[f] + "?lon[0:1]")  # Load tiny slice of dataset
+            except OSError:
+                return Response(
+                    f"File not found on THREDDS using OPeNDAP: {arg_dict[f]}",
+                    status=400,
+                )
+        else:  # Local file
+            try:
+                open(arg_dict[f], "r")
+            except ValueError:
+                return Response(
+                    "Invalid date format, must be in yyyy-mm-dd or yyyy-mm-dd-hh",
+                    status=400,
+                )
+
+    # Inputs are valid
+    return Response("Inputs are valid.", status=200)
