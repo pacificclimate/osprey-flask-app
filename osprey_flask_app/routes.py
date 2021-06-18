@@ -71,7 +71,7 @@ def status_route(thread_id):
         return Response(
             "Process completed. Get output: "
             + url_for("osprey.output_route", thread_id=thread_id),
-            status=201,
+            status=200,
         )
 
 

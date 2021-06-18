@@ -18,11 +18,11 @@ def client():
 
 
 def full_rvic_test(kwargs, client, valid_input=True):
-    input_url = "/osprey/input?"
-    for arg in kwargs.keys():
+    first_arg = kwargs.keys()[0]
+    input_url = f"/osprey/input?{first_arg}={kwargs[first_arg]}"
+    for arg in kwargs.keys()[1:]:
         if kwargs[arg] is not None:
-            input_url += arg + "=" + kwargs[arg] + "&"
-    input_url = input_url[:-1]  # omit last &
+            input_url += "&" + arg + "=" + kwargs[arg]
 
     input_response = client.get(input_url)
     if valid_input:
