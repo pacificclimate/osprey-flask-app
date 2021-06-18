@@ -101,10 +101,9 @@ def validate_inputs(arg_dict):
         else:  # Local file
             try:
                 open(arg_dict[f], "r")
-            except ValueError:
+            except FileNotFoundError as not_found:
                 return Response(
-                    "Invalid date format, must be in yyyy-mm-dd or yyyy-mm-dd-hh",
-                    status=400,
+                    f"Local file not found: {not_found.filename}", status=400
                 )
 
     # Inputs are valid
