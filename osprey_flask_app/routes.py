@@ -12,6 +12,7 @@ import queue
 
 osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
 que = queue.Queue()
+job_ids = []
 
 
 @osprey.route(
@@ -54,6 +55,7 @@ def input_route():
         target=lambda q, arg: q.put(run_full_rvic(arg)), args=(que, arg_dict)
     )
     rvic_thread.start()
+    job_ids.append(rvic_thread.native_id)
     return Response(
         "RVIC Process started. Check status: "
         + url_for("osprey.status_route", thread_id=rvic_thread.native_id),
@@ -64,7 +66,10 @@ def input_route():
 @osprey.route("/status/<thread_id>", methods=["GET"])
 def status_route(thread_id):
     """Provide route to check status of RVIC process."""
-    active_thread_ids = [str(t.native_id) for t in threading.enumerate()]
+    thread_id = int(thread_id)
+    if thread_id not in job_ids:
+        return Response("Process with this id does not exist.", status=201)
+    active_thread_ids = [t.native_id for t in threading.enumerate()]
     if thread_id in active_thread_ids:
         return Response("Process is still running.", status=201)
     else:
@@ -78,14 +83,19 @@ def status_route(thread_id):
 @osprey.route("/output/<thread_id>", methods=["GET"])
 def output_route(thread_id):
     """Provide route to get streamflow output of RVIC process."""
-    if que.empty():
+    thread_id = int(thread_id)
+    if thread_id not in job_ids:
+        return Response("Process with this id does not exist.", status=404)
+    elif que.empty():  # Queue did not receive streamflow output
         return Response("Process has failed. No output returned.", status=404)
+
     try:
         outpath = que.get()
         outpath_response = requests.get(outpath)
     except requests.exceptions.ConnectionError as e:
         return Response("Process has failed. " + e, status=404)
 
+    job_ids.remove(thread_id)
     with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
         outfile.write(outpath_response.content)
         return send_file(
