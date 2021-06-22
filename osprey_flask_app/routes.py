@@ -6,7 +6,6 @@ from .utils import create_full_arg_dict, validate_inputs
 
 import os
 import requests
-from tempfile import NamedTemporaryFile
 import threading
 import queue
 
@@ -96,11 +95,6 @@ def output_route(thread_id):
         return Response("Process has failed. " + e, status=404)
 
     job_ids.remove(thread_id)
-    with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-        outfile.write(outpath_response.content)
-        return send_file(
-            outfile.name,
-            mimetype="application/x-netcdf",
-            as_attachment=True,
-            download_name=os.path.basename(outpath),
-        )
+    return Response(
+        f"Process successfully completed. Output url: {outpath}", status=302
+    )

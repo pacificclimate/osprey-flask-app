@@ -2,9 +2,11 @@ import pytest
 
 from osprey_flask_app import create_app
 from wps_tools.testing import url_path
+import netCDF4
 from pkg_resources import resource_filename
 import os
 import time
+import requests
 from urllib.parse import urlencode
 
 
@@ -42,7 +44,8 @@ def full_rvic_test(kwargs, client, valid_input=True):
 
     output_url = status_response.data.split()[-1].decode("utf-8")
     output_response = client.get(output_url)
-    assert output_response.status_code == 200
+    streamflow_path = output_response.data.split()[-1].decode("utf-8")
+    assert requests.get(streamflow_path).status_code == 200
 
 
 @pytest.mark.online
