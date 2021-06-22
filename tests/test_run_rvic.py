@@ -4,6 +4,8 @@ from osprey_flask_app import create_app
 from wps_tools.testing import url_path
 from pkg_resources import resource_filename
 import os
+import time
+from urllib.parse import urlencode
 
 
 @pytest.fixture
@@ -18,12 +20,8 @@ def client():
 
 
 def full_rvic_test(kwargs, client, valid_input=True):
-    first_arg = list(kwargs.keys())[0]
-    input_url = f"/osprey/input?{first_arg}={kwargs[first_arg]}"
-    for arg in list(kwargs.keys())[1:]:
-        if kwargs[arg] is not None:
-            input_url += "&" + arg + "=" + kwargs[arg]
-
+    input_params = urlencode(kwargs)
+    input_url = f"/osprey/input?{input_params}"
     input_response = client.get(input_url)
     if valid_input:
         assert input_response.status_code == 202
@@ -33,8 +31,14 @@ def full_rvic_test(kwargs, client, valid_input=True):
 
     status_url = input_response.data.split()[-1].decode("utf-8")
     status_response = client.get(status_url)
-    while status_response.data == b"Process is still running.":
+
+    timeout = 1800  # Time to timeout in seconds
+    for i in range(timeout):
+        if status_response.data != b"Process is still running.":  # Process is completed
+            break
+        time.sleep(1)
         status_response = client.get(status_url)
+    assert b"Process completed." in status_response.data
 
     output_url = status_response.data.split()[-1].decode("utf-8")
     output_response = client.get(output_url)

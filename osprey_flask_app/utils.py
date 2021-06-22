@@ -1,5 +1,6 @@
 import logging
 import datetime
+import dateutil
 import requests
 import netCDF4
 from flask import Response
@@ -71,17 +72,15 @@ def validate_inputs(arg_dict):
         1. arg_dict (dict): arguments supplied to osprey with corresponding values
     """
 
-    # Check that dates have the right format
+    # Check that dates have a proper format
     try:
-        datetime.datetime.strptime(arg_dict["run_startdate"], "%Y-%m-%d-%H")
-        datetime.datetime.strptime(arg_dict["stop_date"], "%Y-%m-%d")
-    except ValueError:
-        return Response(
-            "Invalid date format, must be in yyyy-mm-dd or yyyy-mm-dd-hh", status=400
-        )
+        dateutil.parser.parse(arg_dict["run_startdate"])
+        dateutil.parser.parser(arg_dict["stop_date"])
+    except dateutil.parser._parser.ParserError:
+        return Response("Invalid date format.", status=400)
 
     # Check that filepaths exist
-    files = ["pour_points", "uh_box", "routing", "domain", "input_forcings"]
+    files = ("pour_points", "uh_box", "routing", "domain", "input_forcings")
     for f in files:
         if "fileServer" in arg_dict[f]:  # THREDDS file using http
             http_response = requests.head(arg_dict[f])
