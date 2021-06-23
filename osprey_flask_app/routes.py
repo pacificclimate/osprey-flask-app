@@ -1,6 +1,6 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, Response, send_file, url_for
+from flask import Blueprint, request, Response, url_for
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict, inputs_are_valid
 

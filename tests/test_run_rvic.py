@@ -2,7 +2,6 @@ import pytest
 
 from osprey_flask_app import create_app
 from wps_tools.testing import url_path
-import netCDF4
 from pkg_resources import resource_filename
 import os
 import time
