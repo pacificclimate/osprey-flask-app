@@ -8,6 +8,10 @@ def run_full_rvic(arg_dict, url=get_target_url("osprey")):
         arg_dict["pour_points"] = open(arg_dict["pour_points"]).read()
     if "docker" not in arg_dict["uh_box"]:
         arg_dict["uh_box"] = open(arg_dict["uh_box"]).read()
+    if arg_dict["params_config_dict"] is not None:
+        arg_dict["params_config_dict"] = eval(arg_dict["params_config_dict"])
+    if arg_dict["convolve_config_dict"] is not None:
+        arg_dict["convolve_config_dict"] = eval(arg_dict["convolve_config_dict"])
 
     output_full = osprey.full_rvic(
         case_id=arg_dict["case_id"],
