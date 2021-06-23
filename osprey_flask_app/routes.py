@@ -2,7 +2,7 @@
 
 from flask import Blueprint, request, Response, send_file, url_for
 from .run_rvic import run_full_rvic
-from .utils import create_full_arg_dict, validate_inputs
+from .utils import create_full_arg_dict, inputs_are_valid
 
 import os
 import requests
@@ -46,9 +46,10 @@ def input_route():
     """
     args = request.args
     arg_dict = create_full_arg_dict(args)
-    validate_response = validate_inputs(arg_dict)
-    if validate_response.status_code == 400:
-        return validate_response
+    try:
+        inputs_are_valid(arg_dict)
+    except Exception as e:
+        return Response(str(e), status=400)
 
     rvic_thread = threading.Thread(
         target=lambda q, arg: q.put(run_full_rvic(arg)), args=(que, arg_dict)

@@ -1,6 +1,6 @@
 import logging
 import datetime
-import dateutil
+from dateutil.parser import parse
 import requests
 import netCDF4
 from flask import Response
@@ -66,44 +66,56 @@ def create_full_arg_dict(args):
     return arg_dict
 
 
-def validate_inputs(arg_dict):
-    """Check that inputs have valid values and that filepaths exist.
+def inputs_are_valid(arg_dict):
+    """Check that start/stop dates have a proper format and that filepaths exist either on
+    THREDDS or in local storage.
     Parameters
-        1. arg_dict (dict): arguments supplied to osprey with corresponding values
+        1. arg_dict (dict): arguments supplied to osprey with corresponding values. It should contain
+        the following keys.
+
+            1. case_id (str): Case ID for the RVIC process
+            2. grid_id (str): Routing domain grid shortname
+            3. run_startdate (str): Run start date (yyyy-mm-dd-hh). Only used for startup and drystart runs.
+            4. stop_date (str): Run stop date.
+            5. pour_points (path): Comma-separated file of outlets to route to [lons, lats]
+            6. uh_box (path): Defines the unit hydrograph to route flow to the edge of each grid cell.
+            7. routing (path): Routing inputs netCDF.
+            8. domain (path): CESM compliant domain file.
+            9. input_forcings (path): Land data netCDF forcings.
+            10. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET').
+                Default is 'INFO'.
+            11. version (int): Return RVIC version string (1) or not (0). Default is 1.
+            12. np (int): Number of processors used to run job. Default is 1.
+            13. params_config_file (path): Path to input configuration file Parameters process.
+            14. params_config_dict (str): Dictionary containing input configuration for Parameters process
+                (mutually exclusive with params_config_file).
+            15. convolve_config_file (path): Path to input configuration file Convolution process.
+            16. convolve_config_dict (str): Dictionary containing input configuration for Convolution process
+                (mutually exclusive with convolve_config_file).
     """
 
-    # Check that dates have a proper format
-    try:
-        dateutil.parser.parse(arg_dict["run_startdate"])
-        dateutil.parser.parser(arg_dict["stop_date"])
-    except dateutil.parser._parser.ParserError:
-        return Response("Invalid date format.", status=400)
+    # Check start/stop dates
+    parse(arg_dict["run_startdate"])
+    parse(arg_dict["stop_date"])
 
-    # Check that filepaths exist
-    files = ("pour_points", "uh_box", "routing", "domain", "input_forcings")
+    # Check filepaths
+    files = ["pour_points", "uh_box", "routing", "domain", "input_forcings"]
+    if arg_dict["params_config_file"] is not None:
+        files.append("params_config_file")
+    if arg_dict["convolve_config_file"] is not None:
+        files.append("convolve_config_file")
+
     for f in files:
         if "fileServer" in arg_dict[f]:  # THREDDS file using http
             http_response = requests.head(arg_dict[f])
             if http_response.status_code != 200:
-                return Response(
+                raise Exception(
                     f"File not found on THREDDS using http: {arg_dict[f]}",
-                    status=400,
                 )
-        elif "dodsC" in arg_dict[f]:  # THREDDS file using OPeNDAP
-            try:
-                netCDF4.Dataset(arg_dict[f] + "?lon[0:1]")  # Load tiny slice of dataset
-            except OSError:
-                return Response(
-                    f"File not found on THREDDS using OPeNDAP: {arg_dict[f]}",
-                    status=400,
-                )
+        elif "dodsC" in arg_dict[f]:  # THREDDS netCDF file using OPeNDAP
+            netCDF4.Dataset(arg_dict[f] + "?lon[0:1]")  # Load tiny slice of dataset
         else:  # Local file
-            try:
-                open(arg_dict[f], "r")
-            except FileNotFoundError as not_found:
-                return Response(
-                    f"Local file not found: {not_found.filename}", status=400
-                )
+            open(arg_dict[f], "r").close()
 
     # Inputs are valid
-    return Response("Inputs are valid.", status=200)
+    return True
