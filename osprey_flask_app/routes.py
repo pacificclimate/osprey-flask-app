@@ -8,10 +8,14 @@ import os
 import requests
 import threading
 import queue
+import uuid
 
 osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
 que = queue.Queue()
-job_ids = []
+job_ids = []  # Used to ensure that each request has a unique id
+thread_ids = (
+    []
+)  # Used to check if thread corresponding to specified job is still executing
 
 
 @osprey.route(
@@ -55,36 +59,42 @@ def input_route():
         target=lambda q, arg: q.put(run_full_rvic(arg)), args=(que, arg_dict)
     )
     rvic_thread.start()
-    job_ids.append(rvic_thread.native_id)
+    thread_ids.append(rvic_thread.native_id)
+
+    job_id = str(uuid.uuid4())  # Generate unique id for tracking request
+    job_ids.append(job_id)
     return Response(
         "RVIC Process started. Check status: "
-        + url_for("osprey.status_route", thread_id=rvic_thread.native_id),
+        + url_for("osprey.status_route", job_id=job_id),
         status=202,
     )
 
 
-@osprey.route("/status/<thread_id>", methods=["GET"])
-def status_route(thread_id):
+@osprey.route("/status/<job_id>", methods=["GET"])
+def status_route(job_id):
     """Provide route to check status of RVIC process."""
-    thread_id = int(thread_id)
-    if thread_id not in job_ids:
+    if job_id not in job_ids:
         return Response("Process with this id does not exist.", status=201)
-    active_thread_ids = [t.native_id for t in threading.enumerate()]
+
+    job_index = job_ids.index(job_id)
+    thread_id = int(thread_ids[job_index])
+    active_thread_ids = [
+        t.native_id for t in threading.enumerate()
+    ]  # Check which threads are still executing
     if thread_id in active_thread_ids:
         return Response("Process is still running.", status=201)
     else:
         return Response(
             "Process completed. Get output: "
-            + url_for("osprey.output_route", thread_id=thread_id),
+            + url_for("osprey.output_route", job_id=job_id),
             status=200,
         )
 
 
-@osprey.route("/output/<thread_id>", methods=["GET"])
-def output_route(thread_id):
+@osprey.route("/output/<job_id>", methods=["GET"])
+def output_route(job_id):
     """Provide route to get streamflow output of RVIC process."""
-    thread_id = int(thread_id)
-    if thread_id not in job_ids:
+    if job_id not in job_ids:
         return Response("Process with this id does not exist.", status=404)
     elif que.empty():  # Queue did not receive streamflow output
         return Response("Process has failed. No output returned.", status=404)
@@ -95,7 +105,10 @@ def output_route(thread_id):
     except requests.exceptions.ConnectionError as e:
         return Response("Process has failed. " + e, status=404)
 
-    job_ids.remove(thread_id)
+    # Remove ids from lists of executing jobs
+    job_index = job_ids.index(job_id)
+    job_ids.remove(job_id)
+    thread_ids.remove(thread_ids[job_index])
     return Response(
         f"Process successfully completed. Output url: {outpath}", status=302
     )
