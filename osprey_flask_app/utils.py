@@ -1,9 +1,7 @@
 import logging
-import datetime
-from dateutil.parser import parse
 import requests
 import netCDF4
-from flask import Response
+from dateutil.parser import parse
 
 
 def setup_logging(log_level):
