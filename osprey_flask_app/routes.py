@@ -89,6 +89,11 @@ def output_route(job_id):
 
     job_index = job_ids.index(job_id)
     job_thread = job_threads[job_index]
+
+    # Remove id from list of executing jobs
+    job_ids.remove(job_id)
+    job_threads.remove(job_thread)
+
     job_exception = job_thread.exception()
     if job_exception is not None:
         return Response("Process has failed. " + job_exception, status=404)
@@ -99,9 +104,6 @@ def output_route(job_id):
     except requests.exceptions.ConnectionError as e:
         return Response("Process has failed. " + e, status=404)
 
-    # Remove id from list of executing jobs
-    job_ids.remove(job_id)
-    job_threads.remove(job_threads[job_index])
     return Response(
         f"Process successfully completed. Output url: {outpath}", status=302
     )
