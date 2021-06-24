@@ -97,13 +97,19 @@ def inputs_are_valid(arg_dict):
     parse(arg_dict["stop_date"])
 
     # Check filepaths
-    files = ["pour_points", "uh_box", "routing", "domain", "input_forcings"]
-    if arg_dict["params_config_file"] is not None:
-        files.append("params_config_file")
-    if arg_dict["convolve_config_file"] is not None:
-        files.append("convolve_config_file")
-
+    files = (
+        "pour_points",
+        "uh_box",
+        "routing",
+        "domain",
+        "input_forcings",
+        "params_config_file",
+        "convolve_config_file",
+    )
+    optional_files = ("params_config_file", "convolve_config_file")
     for f in files:
+        if (f in optional_files) and (arg_dict[f] is None):
+            continue
         if "fileServer" in arg_dict[f]:  # THREDDS file using http
             http_response = requests.head(arg_dict[f])
             if http_response.status_code != 200:
