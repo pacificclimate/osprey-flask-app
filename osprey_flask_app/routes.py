@@ -13,8 +13,7 @@ osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
 pool = concurrent.futures.ThreadPoolExecutor(
     max_workers=os.environ.get("MAX_WORKERS", 1)
 )
-job_ids = []  # Used to ensure that each request has a unique id
-job_threads = []  # Used to check if process is still executing and to return output
+jobs = {}  # Used to check if process is still executing and to return output
 
 
 @osprey.route(
@@ -54,11 +53,10 @@ def input_route():
     except Exception as e:
         return Response(str(e), status=400)
 
-    rvic_thread = pool.submit(run_full_rvic, arg_dict)
-    job_threads.append(rvic_thread)
+    rvic_job = pool.submit(run_full_rvic, arg_dict)
 
     job_id = str(uuid.uuid4())  # Generate unique id for tracking request
-    job_ids.append(job_id)
+    jobs[job_id] = rvic_job
     return Response(
         "RVIC Process started. Check status: "
         + url_for("osprey.status_route", job_id=job_id),
@@ -69,12 +67,12 @@ def input_route():
 @osprey.route("/status/<job_id>", methods=["GET"])
 def status_route(job_id):
     """Provide route to check status of RVIC process."""
-    if job_id not in job_ids:
+    try:
+        job = jobs[job_id]
+    except KeyError:
         return Response("Process with this id does not exist.", status=201)
 
-    job_index = job_ids.index(job_id)
-    job_thread = job_threads[job_index]
-    if not job_thread.done():
+    if not job.done():
         return Response("Process is still running.", status=201)
     else:
         return Response(
@@ -87,22 +85,20 @@ def status_route(job_id):
 @osprey.route("/output/<job_id>", methods=["GET"])
 def output_route(job_id):
     """Provide route to get streamflow output of RVIC process."""
-    if job_id not in job_ids:
+    try:
+        job = jobs[job_id]
+    except KeyError:
         return Response("Process with this id does not exist.", status=404)
 
-    job_index = job_ids.index(job_id)
-    job_thread = job_threads[job_index]
+    # Remove id from dictionary of executing jobs
+    jobs.pop(job_id)
 
-    # Remove id from list of executing jobs
-    job_ids.remove(job_id)
-    job_threads.remove(job_thread)
-
-    job_exception = job_thread.exception()
+    job_exception = job.exception()
     if job_exception is not None:
         return Response("Process has failed. " + job_exception, status=404)
 
     try:
-        outpath = job_thread.result()
+        outpath = job.result()
         outpath_response = requests.get(outpath)
     except requests.exceptions.ConnectionError as e:
         return Response("Process has failed. " + e, status=404)
