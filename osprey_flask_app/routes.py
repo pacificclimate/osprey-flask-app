@@ -4,12 +4,15 @@ from flask import Blueprint, request, Response, url_for
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict, inputs_are_valid
 
+import os
 import requests
 import concurrent.futures
 import uuid
 
 osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
-pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+pool = concurrent.futures.ThreadPoolExecutor(
+    max_workers=os.environ.get("MAX_WORKERS", 1)
+)
 job_ids = []  # Used to ensure that each request has a unique id
 job_threads = []  # Used to check if process is still executing and to return output
 
