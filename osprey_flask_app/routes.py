@@ -104,5 +104,5 @@ def output_route(job_id):
         return Response("Process has failed. " + e, status=404)
 
     return Response(
-        f"Process successfully completed. Output url: {outpath}", status=302
+        "Process successfully completed.", headers={"Location": outpath}, status=302
     )

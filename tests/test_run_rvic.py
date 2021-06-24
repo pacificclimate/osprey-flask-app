@@ -43,7 +43,7 @@ def full_rvic_test(kwargs, client, valid_input=True):
 
     output_url = status_response.data.split()[-1].decode("utf-8")
     output_response = client.get(output_url)
-    streamflow_path = output_response.data.split()[-1].decode("utf-8")
+    streamflow_path = output_response.headers.get("Location")
     assert requests.get(streamflow_path).status_code == 200
 
 
