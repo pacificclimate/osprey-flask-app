@@ -1,7 +1,7 @@
 # osprey-flask-app
 
 This application is a flask microservice to interact with PCIC's [osprey](https://github.com/pacificclimate/osprey#readme) bird, which runs the RVIC streamflow package as a WPS process. The purpose of this app is to make it so that a user does not have to provide the filepath inputs required for RVIC, and it also provides an asynchronous response so that the user can obtain feedback on the status of the process request. This is particularly important due to RVIC's long (~20-30 min) runtime. The app runs asynchronously by submitting a new job into a pool after
-a request is submitted. The maximum number of workers running each job, given by `MAX_WORKERS`, has a default value of 1, but it should be set by the developer deploying the service.
+a request is submitted. The maximum number of workers running each job, given by `MAX_WORKERS`, has a default value of 1, but it should be set as an environment variable by the developer deploying the service.
 
 ## Installation
 We can use `make` to handle the installation process and to initialize the environment variables needed for the app to run. Copy and paste this section into your terminal:
