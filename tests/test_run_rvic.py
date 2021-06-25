@@ -1,19 +1,50 @@
 import pytest
 
-from osprey_flask_app import run_rvic
+from osprey_flask_app import create_app
 from wps_tools.testing import url_path
-from tempfile import NamedTemporaryFile
 from pkg_resources import resource_filename
 import os
+import time
 import requests
+from urllib.parse import urlencode
 
 
-def full_rvic_test(kwargs):
-    outpath = run_rvic.run_full_rvic(kwargs)
-    outpath_url = requests.get(outpath)
-    with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-        outfile.write(outpath_url.content)
-        assert os.path.isfile(outfile.name)
+@pytest.fixture
+def client():
+    flask_app = create_app()
+
+    # Create a test client using the Flask application configured for testing
+    with flask_app.test_client() as testing_client:
+        # Establish an application context
+        with flask_app.app_context():
+            yield testing_client
+
+
+def full_rvic_test(kwargs, client, valid_input=True):
+    input_params = urlencode(kwargs)
+    input_url = f"/osprey/input?{input_params}"
+    input_response = client.get(input_url)
+    if valid_input:
+        assert input_response.status_code == 202
+    else:
+        assert input_response.status_code == 400
+        return
+
+    status_url = input_response.data.split()[-1].decode("utf-8")
+    status_response = client.get(status_url)
+
+    timeout = 1800  # Time to timeout in seconds
+    for i in range(timeout):
+        if status_response.data != b"Process is still running.":  # Process is completed
+            break
+        time.sleep(1)
+        status_response = client.get(status_url)
+    assert b"Process completed." in status_response.data
+
+    output_url = status_response.data.split()[-1].decode("utf-8")
+    output_response = client.get(output_url)
+    streamflow_path = output_response.headers.get("Location")
+    assert requests.get(streamflow_path).status_code == 200
 
 
 @pytest.mark.online
@@ -80,8 +111,109 @@ def full_rvic_test(kwargs):
         ),
     ],
 )
-def test_run_full_rvic_online(kwargs):
-    full_rvic_test(kwargs)
+def test_run_full_rvic_online_valid(kwargs, client):
+    full_rvic_test(kwargs, client, valid_input=True)
+
+
+@pytest.mark.online
+@pytest.mark.parametrize(
+    ("kwargs"),
+    [
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "COLUMBIA",
+                "run_startdate": "2012120100",  # Invalid date
+                "stop_date": "2012-12-31",
+                "pour_points": resource_filename(
+                    "tests", "data/samples/sample_pour.txt"
+                ),
+                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
+                "routing": resource_filename(
+                    "tests", "data/samples/sample_flow_parameter.nc"
+                ),
+                "domain": resource_filename(
+                    "tests", "data/samples/sample_routing_domain.nc"
+                ),
+                "input_forcings": url_path(
+                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
+                ),
+                "params_config_file": resource_filename(
+                    "tests", "data/configs/parameters.cfg"
+                ),
+                "params_config_dict": None,
+                "convolve_config_file": resource_filename(
+                    "tests", "data/configs/convolve.cfg"
+                ),
+                "convolve_config_dict": None,
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "COLUMBIA",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "pour_points": url_path(
+                    "sample_pour.txt", "http", "climate_explorer_data_prep"
+                ),
+                "uh_box": resource_filename(
+                    "tests", "data/samples/uhboxes.csv"
+                ),  # Local file does not exist
+                "routing": url_path(
+                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
+                ),
+                "domain": resource_filename(
+                    "tests", "data/samples/sample_routing_domain.nc"
+                ),
+                "input_forcings": url_path(
+                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
+                ),
+                "params_config_file": resource_filename(
+                    "tests", "data/configs/parameters.cfg"
+                ),
+                "params_config_dict": None,
+                "convolve_config_file": resource_filename(
+                    "tests", "data/configs/convolve.cfg"
+                ),
+                "convolve_config_dict": None,
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "COLUMBIA",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "pour_points": url_path(
+                    "sample_pour.txt", "http", "climate_explorer_data_prep"
+                ),
+                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
+                "routing": url_path(
+                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
+                ),
+                "domain": resource_filename(
+                    "tests", "data/samples/sample_routing_domain.nc"
+                ),
+                "input_forcings": url_path(
+                    "columbia_vicset.nc",
+                    "opendap",
+                    "climate_explorer_data_prep",  # File is not on THREDDS
+                ),
+                "params_config_file": resource_filename(
+                    "tests", "data/configs/parameters.cfg"
+                ),
+                "params_config_dict": None,
+                "convolve_config_file": resource_filename(
+                    "tests", "data/configs/convolve.cfg"
+                ),
+                "convolve_config_dict": None,
+            }
+        ),
+    ],
+)
+def test_run_full_rvic_online_invalid(kwargs, client):
+    full_rvic_test(kwargs, client, valid_input=False)
 
 
 @pytest.mark.parametrize(

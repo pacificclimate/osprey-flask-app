@@ -4,6 +4,9 @@ __pycache__/
 # Distribution / packaging
 *.egg-info/
 
+# R
+*.Rhistory
+
 # Environments
 .env
 .venv

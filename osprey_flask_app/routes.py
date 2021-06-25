@@ -1,22 +1,26 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, send_file
+from flask import Blueprint, request, Response, url_for
 from .run_rvic import run_full_rvic
-from .utils import create_full_arg_dict
-from pywps.app.exceptions import ProcessError
+from .utils import create_full_arg_dict, inputs_are_valid
 
 import os
 import requests
-from tempfile import NamedTemporaryFile
+import concurrent.futures
+import uuid
 
-data = Blueprint("data", __name__, url_prefix="/data")
-
-
-@data.route(
-    "/",
-    methods=["GET", "POST"],
+osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
+pool = concurrent.futures.ThreadPoolExecutor(
+    max_workers=os.environ.get("MAX_WORKERS", 1)
 )
-def osprey_route():
+jobs = {}  # Used to check if process is still executing and to return output
+
+
+@osprey.route(
+    "/input",
+    methods=["POST", "GET"],
+)
+def input_route():
     """Provide route to get input parameters for full_rvic process.
     Expected inputs (given in url)
         1. case_id (str): Case ID for the RVIC process
@@ -44,17 +48,61 @@ def osprey_route():
     """
     args = request.args
     arg_dict = create_full_arg_dict(args)
-    outpath = run_full_rvic(arg_dict)
     try:
-        outpath_url = requests.get(outpath)
-    except requests.exceptions.ConnectionError as e:
-        raise
+        inputs_are_valid(arg_dict)
+    except Exception as e:
+        return Response(str(e), status=400)
 
-    with NamedTemporaryFile(suffix=".nc", dir="/tmp") as outfile:
-        outfile.write(outpath_url.content)
-        return send_file(
-            outfile.name,
-            mimetype="application/x-netcdf",
-            as_attachment=True,
-            attachment_filename=os.path.basename(outpath),
+    rvic_job = pool.submit(run_full_rvic, arg_dict)
+
+    job_id = str(uuid.uuid4())  # Generate unique id for tracking request
+    jobs[job_id] = rvic_job
+    return Response(
+        "RVIC Process started. Check status: "
+        + url_for("osprey.status_route", job_id=job_id),
+        status=202,
+    )
+
+
+@osprey.route("/status/<job_id>", methods=["GET"])
+def status_route(job_id):
+    """Provide route to check status of RVIC process."""
+    try:
+        job = jobs[job_id]
+    except KeyError:
+        return Response("Process with this id does not exist.", status=201)
+
+    if not job.done():
+        return Response("Process is still running.", status=201)
+    else:
+        return Response(
+            "Process completed. Get output: "
+            + url_for("osprey.output_route", job_id=job_id),
+            status=200,
         )
+
+
+@osprey.route("/output/<job_id>", methods=["GET"])
+def output_route(job_id):
+    """Provide route to get streamflow output of RVIC process."""
+    try:
+        job = jobs[job_id]
+    except KeyError:
+        return Response("Process with this id does not exist.", status=404)
+
+    # Remove id from dictionary of executing jobs
+    jobs.pop(job_id)
+
+    job_exception = job.exception()
+    if job_exception is not None:
+        return Response("Process has failed. " + job_exception, status=404)
+
+    try:
+        outpath = job.result()
+        outpath_response = requests.get(outpath)
+    except requests.exceptions.ConnectionError as e:
+        return Response("Process has failed. " + e, status=404)
+
+    return Response(
+        "Process successfully completed.", headers={"Location": outpath}, status=302
+    )
