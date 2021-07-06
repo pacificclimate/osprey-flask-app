@@ -1,6 +1,7 @@
 import logging
 import requests
 import netCDF4
+import tempfile
 from dateutil.parser import parse
 from wps_tools.testing import url_path
 
@@ -46,7 +47,7 @@ def get_input_files(arg_dict):
     else:
         routing = "rvic.parameters_fraser_v2.nc"
         domain = "rvic.domain_fraser_v2.nc"
-        
+
     arg_dict[
         "routing"
     ] = f"{routing_url}/{grid_id}/parameters/{routing}"  # Routing inputs netCDF
@@ -56,7 +57,22 @@ def get_input_files(arg_dict):
     arg_dict[
         "input_forcings"
     ] = f"{projections_url}/{grid_id}/{grid_id.upper()}/{model_subdir}/{grid_id}_vicset2_1945to2100.nc"  # Land data netCDF forcings
-     
+
+
+def create_pour_points(arg_dict):
+    """ "Create pour points string from (lon, lat) coordinates given in request url.
+    Parameters
+        1. arg_dict (dict): dictionary containing coordinates and mapping to pour points file
+    """
+    lons = arg_dict["lons"].split(",")
+    lats = arg_dict["lats"].split(",")
+    names = arg_dict["names"].split(",")
+    pour_points = "lons,lats,names\n"
+    for (lon, lat, name) in zip(lons, lats, names):
+        pour_points += ",".join((lon, lat, name)) + "\n"
+    arg_dict["pour_points"] = pour_points
+
+
 def create_full_arg_dict(args):
     """Create full dictionary of arguments from request url to pass to osprey.
     Add 'None' values for missing arguments.
@@ -96,7 +112,10 @@ def create_full_arg_dict(args):
 
     # Obtain proper input files from THREDDS
     get_input_files(arg_dict)
-    
+
+    # Concatenate lons, lats, and names into long pour points string
+    create_pour_points(arg_dict)
+
     return arg_dict
 
 
