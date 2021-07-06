@@ -44,7 +44,7 @@ def get_input_files(arg_dict):
     elif grid_id == "peace":
         routing = "bc.rvic.peace.20171019.nc"
         domain = "domain.rvic.peace.20161018.nc"
-    else:
+    else:  # Fraser watershed
         routing = "rvic.parameters_fraser_v2.nc"
         domain = "rvic.domain_fraser_v2.nc"
 
@@ -70,7 +70,7 @@ def create_pour_points(arg_dict):
     pour_points = "lons,lats,names\n"
     for (lon, lat, name) in zip(lons, lats, names):
         pour_points += ",".join((lon, lat, name)) + "\n"
-    arg_dict["pour_points"] = pour_points
+    arg_dict["pour_points"] = pour_points[:-1]  # Remove last new line character
 
 
 def create_full_arg_dict(args):
@@ -120,61 +120,48 @@ def create_full_arg_dict(args):
 
 
 def inputs_are_valid(arg_dict):
-    """Check that start/stop dates have a proper format and that filepaths exist either on
-    THREDDS or in local storage.
+    """Check that start/stop dates have a proper format, pour points are formatted correctly, and filepaths exist on THREDDS.
     Parameters
-        1. arg_dict (dict): arguments supplied to osprey with corresponding values. It should contain
+        1. arg_dict (dict): arguments supplied to osprey with corresponding values. This function checks
         the following keys.
 
-            1. case_id (str): Case ID for the RVIC process
-            2. grid_id (str): Routing domain grid shortname
-            3. run_startdate (str): Run start date (yyyy-mm-dd-hh). Only used for startup and drystart runs.
-            4. stop_date (str): Run stop date.
-            5. pour_points (path): Comma-separated file of outlets to route to [lons, lats]
-            6. uh_box (path): Defines the unit hydrograph to route flow to the edge of each grid cell.
-            7. routing (path): Routing inputs netCDF.
-            8. domain (path): CESM compliant domain file.
-            9. input_forcings (path): Land data netCDF forcings.
-            10. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET').
-                Default is 'INFO'.
-            11. version (int): Return RVIC version string (1) or not (0). Default is 1.
-            12. np (int): Number of processors used to run job. Default is 1.
-            13. params_config_file (path): Path to input configuration file Parameters process.
-            14. params_config_dict (str): Dictionary containing input configuration for Parameters process
-                (mutually exclusive with params_config_file).
-            15. convolve_config_file (path): Path to input configuration file Convolution process.
-            16. convolve_config_dict (str): Dictionary containing input configuration for Convolution process
-                (mutually exclusive with convolve_config_file).
+            1. run_startdate (str): Run start date. Only used for startup and drystart runs.
+            2. stop_date (str): Run stop date.
+            3. pour points (str): Outlets to route to [lons, lats]
+            4. uh_box (path): Defines the unit hydrograph to route flow to the edge of each grid cell.
+            5. routing (path): Routing inputs netCDF.
+            6. domain (path): CESM compliant domain file.
+            7. input_forcings (path): Land data netCDF forcings.
     """
 
     # Check start/stop dates
     parse(arg_dict["run_startdate"])
     parse(arg_dict["stop_date"])
 
+    # Check pour points
+    pour_points = arg_dict["pour_points"].split("\n")
+    for point in pour_points:
+        (lon, lat, name) = point.split(",")
+        float(lon)
+        float(lat)
+        str(name)
+
     # Check filepaths
     files = (
-        "pour_points",
         "uh_box",
         "routing",
         "domain",
         "input_forcings",
-        "params_config_file",
-        "convolve_config_file",
     )
-    optional_files = ("params_config_file", "convolve_config_file")
     for f in files:
-        if (f in optional_files) and (arg_dict[f] is None):
-            continue
         if "fileServer" in arg_dict[f]:  # THREDDS file using http
             http_response = requests.head(arg_dict[f])
             if http_response.status_code != 200:
                 raise Exception(
                     f"File not found on THREDDS using http: {arg_dict[f]}",
                 )
-        elif "dodsC" in arg_dict[f]:  # THREDDS netCDF file using OPeNDAP
+        else:  # THREDDS netCDF file using OPeNDAP
             netCDF4.Dataset(arg_dict[f] + "?lon[0:1]")  # Load tiny slice of dataset
-        else:  # Local file
-            open(arg_dict[f], "r").close()
 
     # Inputs are valid
     return True
