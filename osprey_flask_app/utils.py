@@ -2,6 +2,7 @@ import logging
 import requests
 import netCDF4
 from dateutil.parser import parse
+from wps_tools.testing import url_path
 
 
 def setup_logging(log_level):
@@ -21,6 +22,41 @@ def get_filename_from_path(path):
     return path.split("/")[-1]
 
 
+def get_input_files(arg_dict):
+    """Use grid id to determine what input files to use for osprey.
+    Parameters
+        1. arg_dict (dict): dictionary to contain mappings to files
+    """
+    base_http_url = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds/fileServer/datasets/storage/data/projects/hydrology/vic_gen2"
+    base_opendap_url = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds/dodsC/datasets/storage/data/projects/hydrology/vic_gen2"
+    routing_url = f"{base_opendap_url}/input/routing"  # Contains input netCDF files for Parameters process
+    projections_url = f"{base_opendap_url}/output/projections"  # Contains input netCDF files for Convolution process
+    model_subdir = "ACCESS1-0_rcp45_r1i1p1/flux"
+
+    arg_dict[
+        "uh_box"
+    ] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Used for all RVIC runs
+    grid_id = arg_dict["grid_id"].lower()
+    if grid_id == "columbia":
+        routing = "pcic.pnw.rvic.input_20170927.nc"
+        domain = "domain.pnw.pcic.20170927.nc"
+    elif grid_id == "peace":
+        routing = "bc.rvic.peace.20171019.nc"
+        domain = "domain.rvic.peace.20161018.nc"
+    else:
+        routing = "rvic.parameters_fraser_v2.nc"
+        domain = "rvic.domain_fraser_v2.nc"
+        
+    arg_dict[
+        "routing"
+    ] = f"{routing_url}/{grid_id}/parameters/{routing}"  # Routing inputs netCDF
+    arg_dict[
+        "domain"
+    ] = f"{routing_url}/{grid_id}/parameters/{domain}"  # CESM compliant domain file
+    arg_dict[
+        "input_forcings"
+    ] = f"{projections_url}/{grid_id}/{grid_id.upper()}/{model_subdir}/{grid_id}_vicset2_1945to2100.nc"  # Land data netCDF forcings
+     
 def create_full_arg_dict(args):
     """Create full dictionary of arguments from request url to pass to osprey.
     Add 'None' values for missing arguments.
@@ -34,14 +70,10 @@ def create_full_arg_dict(args):
         "grid_id",
         "run_startdate",
         "stop_date",
-        "pour_points",
-        "uh_box",
-        "routing",
-        "domain",
-        "input_forcings",
-        "params_config_file",
+        "lons",
+        "lats",
+        "names",
         "params_config_dict",
-        "convolve_config_file",
         "convolve_config_dict",
         "version:1",
         "loglevel:INFO",
@@ -61,6 +93,10 @@ def create_full_arg_dict(args):
                 pass
 
             arg_dict[arg] = args.get(arg, default=default)
+
+    # Obtain proper input files from THREDDS
+    get_input_files(arg_dict)
+    
     return arg_dict
 
 
