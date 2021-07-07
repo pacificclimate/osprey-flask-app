@@ -4,10 +4,6 @@ from wps_tools.testing import get_target_url
 
 def run_full_rvic(arg_dict, url=get_target_url("osprey")):
     osprey = WPSClient(url)
-    if "docker" not in arg_dict["pour_points"]:
-        arg_dict["pour_points"] = open(arg_dict["pour_points"]).read()
-    if "docker" not in arg_dict["uh_box"]:
-        arg_dict["uh_box"] = open(arg_dict["uh_box"]).read()
     if arg_dict["params_config_dict"] is not None:
         arg_dict["params_config_dict"] = eval(arg_dict["params_config_dict"])
     if arg_dict["convolve_config_dict"] is not None:
@@ -26,9 +22,7 @@ def run_full_rvic(arg_dict, url=get_target_url("osprey")):
         loglevel=arg_dict["loglevel"],
         version=arg_dict["version"],
         np=arg_dict["np"],
-        params_config_file=arg_dict["params_config_file"],
         params_config_dict=arg_dict["params_config_dict"],
-        convolve_config_file=arg_dict["convolve_config_file"],
         convolve_config_dict=arg_dict["convolve_config_dict"],
     )
 
