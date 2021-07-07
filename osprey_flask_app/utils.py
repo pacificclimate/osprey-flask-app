@@ -68,8 +68,12 @@ def create_pour_points(arg_dict):
     lats = arg_dict["lats"].split(",")
     names = arg_dict["names"].split(",")
     pour_points = "lons,lats,names\n"
-    for (lon, lat, name) in zip(lons, lats, names):
-        pour_points += ",".join((lon, lat, name)) + "\n"
+    pour_points += "".join(
+        [
+            ",".join((lon, lat, name)) + "\n"
+            for (lon, lat, name) in zip(lons, lats, names)
+        ]
+    )
     arg_dict["pour_points"] = pour_points[:-1]  # Remove last new line character
 
 
