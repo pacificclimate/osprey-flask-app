@@ -3,6 +3,7 @@ import requests
 import netCDF4
 import tempfile
 from dateutil.parser import parse
+from itertools import zip_longest
 from wps_tools.testing import url_path
 
 
@@ -34,10 +35,12 @@ def get_input_files(arg_dict):
     projections_url = f"{base_opendap_url}/output/projections"  # Contains input netCDF files for Convolution process
     model_subdir = "ACCESS1-0_rcp45_r1i1p1/flux"
 
-    #arg_dict[
+    # arg_dict[
     #    "uh_box"
-    #] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Used for all RVIC runs
-    arg_dict["uh_box"] = open("/home/eyvorchuk/Documents/osprey-flask-app/tests/data/samples/uhbox.csv").read()
+    # ] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Used for all RVIC runs
+    arg_dict["uh_box"] = open(
+        "/home/eyvorchuk/Documents/osprey-flask-app/tests/data/samples/uhbox.csv"
+    ).read()
     grid_id = arg_dict["grid_id"].lower()
     if grid_id == "columbia":
         routing = "pcic.pnw.rvic.input_20170927.nc"
@@ -73,16 +76,18 @@ def create_pour_points(arg_dict):
         pour_points = "lons,lats,names,long_names\n"
         pour_points += "".join(
             [
-                ",".join((lon, lat, name, long_name)) + "\n"
-                for (lon, lat, name, long_name) in zip(lons, lats, names, long_names)
+                ",".join((str(lon), str(lat), str(name), str(long_name))) + "\n"
+                for (lon, lat, name, long_name) in zip_longest(
+                    lons, lats, names, long_names
+                )  # Coordinates with missing attributes are padded with 'None' values
             ]
         )
     except AttributeError:  # long_names not given
         pour_points = "lons,lats,names\n"
         pour_points += "".join(
             [
-                ",".join((lon, lat, name)) + "\n"
-                for (lon, lat, name) in zip(lons, lats, names)
+                ",".join((str(lon), str(lat), str(name))) + "\n"
+                for (lon, lat, name) in zip_longest(lons, lats, names)
             ]
         )
     arg_dict["pour_points"] = pour_points[:-1]  # Remove last new line character
@@ -148,10 +153,8 @@ def inputs_are_valid(arg_dict):
     pour_points = arg_dict["pour_points"].split("\n")
     pour_points = pour_points[1:]  # Do not check header
     for point in pour_points:
-        (lon, lat, name) = point.split(",")[:3]
-        float(lon)
-        float(lat)
-        str(name)
+        if "None" in point:
+            raise ValueError(f"Coordinate is missing an attribute: {point}")
 
     # Check filepaths
     files = (
