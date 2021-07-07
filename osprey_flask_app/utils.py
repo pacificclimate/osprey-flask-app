@@ -34,9 +34,10 @@ def get_input_files(arg_dict):
     projections_url = f"{base_opendap_url}/output/projections"  # Contains input netCDF files for Convolution process
     model_subdir = "ACCESS1-0_rcp45_r1i1p1/flux"
 
-    arg_dict[
-        "uh_box"
-    ] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Used for all RVIC runs
+    #arg_dict[
+    #    "uh_box"
+    #] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Used for all RVIC runs
+    arg_dict["uh_box"] = open("/home/eyvorchuk/Documents/osprey-flask-app/tests/data/samples/uhbox.csv").read()
     grid_id = arg_dict["grid_id"].lower()
     if grid_id == "columbia":
         routing = "pcic.pnw.rvic.input_20170927.nc"
@@ -94,35 +95,26 @@ def create_full_arg_dict(args):
         1. args (request.args): arguments given by url
     """
 
-    # Expected url arguments (format is <arg:default_value>)
-    exp_args = [
-        "case_id",
-        "grid_id",
-        "run_startdate",
-        "stop_date",
-        "lons",
-        "lats",
-        "names",
-        "params_config_dict",
-        "convolve_config_dict",
+    # Optional url arguments (format is <arg:default_value>)
+    opt_args = [
+        "long_names:None",
+        "params_config_dict:None",
+        "convolve_config_dict:None",
         "version:1",
         "loglevel:INFO",
         "np:1",
     ]
-    arg_dict = {}
-    for arg in exp_args:
-        if ":" not in arg:
-            arg_dict[arg] = args.get(arg)
-        else:
-            (arg, default) = arg.split(":")
+    arg_dict = dict(args)
+    for arg in opt_args:
+        (arg, default) = arg.split(":")
 
-            # Convert default value to int if possible
-            try:
-                default = int(default)
-            except ValueError:
-                pass
+        # Convert default value to int if possible
+        try:
+            default = int(default)
+        except ValueError:
+            pass
 
-            arg_dict[arg] = args.get(arg, default=default)
+        arg_dict[arg] = args.get(arg, default=default)
 
     # Obtain proper input files from THREDDS
     get_input_files(arg_dict)
@@ -134,7 +126,7 @@ def create_full_arg_dict(args):
 
 
 def inputs_are_valid(arg_dict):
-    """Check that start/stop dates have a proper format, pour points are formatted correctly, and filepaths exist on THREDDS.
+    """Check that start/stop dates have a proper format, all pour points have (lon, lat, name), and filepaths exist on THREDDS.
     Parameters
         1. arg_dict (dict): arguments supplied to osprey with corresponding values. This function checks
         the following keys.
@@ -154,15 +146,15 @@ def inputs_are_valid(arg_dict):
 
     # Check pour points
     pour_points = arg_dict["pour_points"].split("\n")
+    pour_points = pour_points[1:]  # Do not check header
     for point in pour_points:
-        (lon, lat, name) = point.split(",")
+        (lon, lat, name) = point.split(",")[:3]
         float(lon)
         float(lat)
         str(name)
 
     # Check filepaths
     files = (
-        "uh_box",
         "routing",
         "domain",
         "input_forcings",

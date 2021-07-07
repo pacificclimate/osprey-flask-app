@@ -27,9 +27,9 @@ def input_route():
         2. grid_id (str): Routing domain grid shortname
         3. run_startdate (str): Run start date (yyyy-mm-dd-hh). Only used for startup and drystart runs.
         4. stop_date (str): Run stop date.
-        5. lons (list): Longitudes for pour point outlets
-        6. lats (list): Latitudes for pour point outlets
-        7. names (list): Outlets to route to (one for each [lon, lat] coordinate)
+        5. lons (str): Comma-separated longitudes for pour point outlets
+        6. lats (str): Comma-separated latitudes for pour point outlets
+        7. names (str): Comma-separated outlets to route to (one for each [lon, lat] coordinate)
         8. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET').
             Default is 'INFO'.
         9. version (int): Return RVIC version string (1) or not (0). Default is 1.
