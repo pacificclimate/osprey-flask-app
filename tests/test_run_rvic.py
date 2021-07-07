@@ -57,27 +57,33 @@ def full_rvic_test(kwargs, client, valid_input=True):
                 "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": resource_filename(
-                    "tests", "data/samples/sample_pour.txt"
-                ),
-                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
-                "routing": resource_filename(
-                    "tests", "data/samples/sample_flow_parameters.nc"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-116.46875",
+                "lats": "50.90625",
+                "names": "BCHSP",
+                "long_names": "Spillimacheen",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "PEACE",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-124.90625",
+                "lats": "57.21875",
+                "names": "ARNT7",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "FRASER",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-119.65625",
+                "lats": "50.96875",
+                "names": "ADAMS",
+                "long_names": "ADAMS RIVER NEAR SQUILAX",
             }
         ),
         (
@@ -86,27 +92,19 @@ def full_rvic_test(kwargs, client, valid_input=True):
                 "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": url_path(
-                    "sample_pour.txt", "http", "climate_explorer_data_prep"
-                ),
-                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
-                "routing": url_path(
-                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-118.0938",
+                "lats": "51.09375",
+                "names": "sample",
+                "params_config_dict": {
+                    "OPTIONS": {
+                        "LOG_LEVEL": "CRITICAL",
+                    },
+                },
+                "convolve_config_dict": {
+                    "OPTIONS": {
+                        "CASESTR": "Historical",
+                    },
+                },
             }
         ),
     ],
@@ -125,27 +123,9 @@ def test_run_full_rvic_online_valid(kwargs, client):
                 "grid_id": "COLUMBIA",
                 "run_startdate": "2012120100",  # Invalid date
                 "stop_date": "2012-12-31",
-                "pour_points": resource_filename(
-                    "tests", "data/samples/sample_pour.txt"
-                ),
-                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
-                "routing": resource_filename(
-                    "tests", "data/samples/sample_flow_parameter.nc"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-118.0938",
+                "lats": "51.09375",
+                "names": "sample",
             }
         ),
         (
@@ -154,60 +134,30 @@ def test_run_full_rvic_online_valid(kwargs, client):
                 "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": url_path(
-                    "sample_pour.txt", "http", "climate_explorer_data_prep"
-                ),
-                "uh_box": resource_filename(
-                    "tests", "data/samples/uhboxes.csv"
-                ),  # Local file does not exist
-                "routing": url_path(
-                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-118.0938",
+                "lats": "51.09375, 51.19375",  # Extra latitude
+                "names": "sample",
             }
         ),
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
+                "grid_id": "SAMPLE",  # Grid id does not have corresponding THREDDS files
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": url_path(
-                    "sample_pour.txt", "http", "climate_explorer_data_prep"
-                ),
-                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
-                "routing": url_path(
-                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset.nc",
-                    "opendap",
-                    "climate_explorer_data_prep",  # File is not on THREDDS
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-118.0938",
+                "lats": "51.09375",
+                "names": "sample",
+                "params_config_dict": {
+                    "OPTIONS": {
+                        "LOG_LEVEL": "CRITICAL",
+                    },
+                },
+                "convolve_config_dict": {
+                    "OPTIONS": {
+                        "CASESTR": "Historical",
+                    },
+                },
             }
         ),
     ],

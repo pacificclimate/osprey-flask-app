@@ -112,11 +112,13 @@ def create_full_arg_dict(args):
     arg_dict = dict(args)
     for arg in opt_args:
         (arg, default) = arg.split(":")
+        if default == "None":
+            default = None
 
         # Convert default value to int if possible
         try:
             default = int(default)
-        except ValueError:
+        except (ValueError, TypeError):
             pass
 
         arg_dict[arg] = args.get(arg, default=default)
