@@ -67,13 +67,23 @@ def create_pour_points(arg_dict):
     lons = arg_dict["lons"].split(",")
     lats = arg_dict["lats"].split(",")
     names = arg_dict["names"].split(",")
-    pour_points = "lons,lats,names\n"
-    pour_points += "".join(
-        [
-            ",".join((lon, lat, name)) + "\n"
-            for (lon, lat, name) in zip(lons, lats, names)
-        ]
-    )
+    try:
+        long_names = arg_dict["long_names"].split(",")
+        pour_points = "lons,lats,names,long_names\n"
+        pour_points += "".join(
+            [
+                ",".join((lon, lat, name, long_name)) + "\n"
+                for (lon, lat, name, long_name) in zip(lons, lats, names, long_names)
+            ]
+        )
+    except AttributeError:  # long_names not given
+        pour_points = "lons,lats,names\n"
+        pour_points += "".join(
+            [
+                ",".join((lon, lat, name)) + "\n"
+                for (lon, lat, name) in zip(lons, lats, names)
+            ]
+        )
     arg_dict["pour_points"] = pour_points[:-1]  # Remove last new line character
 
 
