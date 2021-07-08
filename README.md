@@ -19,7 +19,10 @@ After initializing these variables, the app can be started by running the follow
 flask run --host=<host> --port=<port>
 ```
 
-The app is then used by inputting the parameters required for `osprey` in the url. The following shows an example of how to do so. The full list of expected inputs is described in the [input_route](https://github.com/pacificclimate/osprey-flask-app/blob/i1-create-init-app/osprey_flask_app/routes.py#L19) function.
+The app is then used by inputting the parameters required for `osprey` in the url. The following shows an example of how to do so. The full list of expected inputs is described in the [input_route](https://github.com/pacificclimate/osprey-flask-app/blob/i1-create-init-app/osprey_flask_app/routes.py#L19) function. There are some aspects to note when supplying inputs:
+  1. The `grid_id` has to be one of `Columbia`, `Peace` or `Fraser` (the three BC watersheds) in order to obtain the proper input netCDF files from PCIC's THREDDS server.
+  2. Rather than provide a `pour_points` file containing coordinates to route the streamflow to, the user must provide lists of `lons`, `lats`, and `names`, which the app then uses to create the `pour_points` string. Example pour points for each watershed can be found in the [samples](https://github.com/pacificclimate/osprey-flask-app/tree/i5-simplify-inputs/tests/data/samples) directory.
+  3. `osprey` contains [config templates](https://github.com/pacificclimate/osprey/blob/master/osprey/config_templates.py) for the `parameters` and `convolution` processes, and any options that the user would like to change must be provided as dictionaries called `param_config_dict` and `convolve_config_dict` respectively.
 
 ```
 # Generic example
