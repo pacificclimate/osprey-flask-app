@@ -2,6 +2,7 @@ import logging
 import requests
 import netCDF4
 import tempfile
+from pkg_resources import resource_filename
 from dateutil.parser import parse
 from itertools import zip_longest
 from wps_tools.testing import url_path
@@ -37,9 +38,9 @@ def get_input_files(arg_dict):
 
     # arg_dict[
     #    "uh_box"
-    # ] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Used for all RVIC runs
+    # ] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Unit hydrograph to route flow to the edge of each grid cell. Used for all RVIC runs
     arg_dict["uh_box"] = open(
-        "/home/eyvorchuk/Documents/osprey-flask-app/tests/data/samples/uhbox.csv"
+        resource_filename("tests", "data/samples/uhbox.csv")
     ).read()
     grid_id = arg_dict["grid_id"].lower()
     if grid_id == "columbia":
