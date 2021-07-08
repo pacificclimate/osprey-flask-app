@@ -1,11 +1,9 @@
 import logging
 import requests
 import netCDF4
-import tempfile
 from pkg_resources import resource_filename
 from dateutil.parser import parse
 from itertools import zip_longest
-from wps_tools.testing import url_path
 
 
 def setup_logging(log_level):
