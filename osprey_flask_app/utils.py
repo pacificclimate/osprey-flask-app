@@ -1,9 +1,9 @@
 import logging
 import requests
 import netCDF4
-from pkg_resources import resource_filename
 from dateutil.parser import parse
 from itertools import zip_longest
+from wps_tools.testing import url_path
 
 
 def setup_logging(log_level):
@@ -28,18 +28,14 @@ def get_input_files(arg_dict):
     Parameters
         1. arg_dict (dict): dictionary to contain mappings to files
     """
-    base_http_url = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds/fileServer/datasets/storage/data/projects/hydrology/vic_gen2"
     base_opendap_url = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds/dodsC/datasets/storage/data/projects/hydrology/vic_gen2"
     routing_url = f"{base_opendap_url}/input/routing"  # Contains input netCDF files for Parameters process
     projections_url = f"{base_opendap_url}/output/projections"  # Contains input netCDF files for Convolution process
     model_subdir = "ACCESS1-0_rcp45_r1i1p1/flux"
 
-    # arg_dict[
-    #    "uh_box"
-    # ] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Unit hydrograph to route flow to the edge of each grid cell. Used for all RVIC runs
-    arg_dict["uh_box"] = open(
-        resource_filename("tests", "data/samples/uhbox.csv")
-    ).read()
+    arg_dict["uh_box"] = url_path(
+        "uhbox.csv", "http", "climate_explorer_data_prep"
+    )  # Unit hydrograph to route flow to the edge of each grid cell. Used for all RVIC runs
     grid_id = arg_dict["grid_id"].lower()
     if grid_id == "columbia":
         routing = "pcic.pnw.rvic.input_20170927.nc"
