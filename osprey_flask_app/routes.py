@@ -23,20 +23,21 @@ jobs = {}  # Used to check if process is still executing and to return output
 def input_route():
     """Provide route to get input parameters for full_rvic process.
     Expected inputs (given in url)
-        1. case_id (str): Case ID for the RVIC process
-        2. grid_id (str): Routing domain grid shortname
+        1. case_id (str): Case ID for the RVIC process.
+        2. grid_id (str): Routing domain grid shortname.
         3. run_startdate (str): Run start date (yyyy-mm-dd-hh). Only used for startup and drystart runs.
         4. stop_date (str): Run stop date.
-        5. lons (str): Comma-separated longitudes for pour point outlets
-        6. lats (str): Comma-separated latitudes for pour point outlets
+        5. lons (str): Comma-separated longitudes for pour point outlets.
+        6. lats (str): Comma-separated latitudes for pour point outlets.
         7. names (str): Comma-separated outlets to route to (one for each [lon, lat] coordinate)
         8. long_names (str): Optional longer descriptions of pour point outlets.
-        9. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET').
+        9. model (str): Climate model to use to get input forcings. Default is 'ACCESS1-0_rcp45_r1i1p1'.
+        10. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET').
             Default is 'INFO'.
-        10. version (int): Return RVIC version string (1) or not (0). Default is 1.
-        11. np (int): Number of processors used to run job. Default is 1.
-        12. params_config_dict (str): Dictionary containing input configuration for Parameters process.
-        13. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
+        11. version (int): Return RVIC version string (1) or not (0). Default is 1.
+        12. np (int): Number of processors used to run job. Default is 1.
+        13. params_config_dict (str): Dictionary containing input configuration for Parameters process.
+        14. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
 
     Example url: http://127.0.0.1:5001/osprey/input?case_id=sample&grid_id=COLUMBIA&run_startdate=2012-12-01-00&stop_date=2012-12-31&lons=-116.46875&lats=50.90625&names=BCHSP&params_config_dict={"OPTIONS": {"LOG_LEVEL": "CRITICAL"}}&convolve_config_dict ={"OPTIONS": {"CASESTR": "Historical"}}
     Returns output netCDF file after Convolution process.

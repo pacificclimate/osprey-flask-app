@@ -27,11 +27,14 @@ def get_input_files(arg_dict):
     Parameters
         1. arg_dict (dict): dictionary to contain mappings to files
     """
-    base_http_url = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds/fileServer/datasets/storage/data/projects/hydrology/vic_gen2"
-    base_opendap_url = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds/dodsC/datasets/storage/data/projects/hydrology/vic_gen2"
+    url_prefix = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds"
+    url_suffix = "datasets/storage/data/projects/hydrology/vic_gen2"
+    base_http_url = f"{url_prefix}/fileServer/{url_suffix}"
+    base_opendap_url = f"{url_prefix}/dodsC/{url_suffix}"
     routing_url = f"{base_opendap_url}/input/routing"  # Contains input netCDF files for Parameters process
     projections_url = f"{base_opendap_url}/output/projections"  # Contains input netCDF files for Convolution process
-    model_subdir = "ACCESS1-0_rcp45_r1i1p1/flux"
+    model = arg_dict["model"]  # Climate model to use to get input forcings
+    model_subdir = f"{model}/flux"
 
     arg_dict[
         "uh_box"
@@ -98,6 +101,7 @@ def create_full_arg_dict(args):
     # Optional url arguments (format is <arg:default_value>)
     opt_args = [
         "long_names:None",
+        "model:ACCESS1-0_rcp45_r1i1p1",
         "params_config_dict:None",
         "convolve_config_dict:None",
         "version:1",
