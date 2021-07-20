@@ -32,7 +32,7 @@ def get_input_files(arg_dict):
     base_http_url = f"{url_prefix}/fileServer/{url_suffix}"
     base_opendap_url = f"{url_prefix}/dodsC/{url_suffix}"
     routing_url = f"{base_opendap_url}/input/routing"  # Contains input netCDF files for Parameters process
-    projections_url = f"{base_opendap_url}/output/projections"  # Contains input netCDF files for Convolution process
+    projections_url = f"{base_opendap_url}/output/projections_LE"  # Contains input netCDF files for Convolution process
     model = arg_dict["model"]  # Climate model to use to get input forcings
     model_subdir = f"{model}/flux"
 
@@ -88,7 +88,7 @@ def create_pour_points(arg_dict):
                 for (lon, lat, name) in zip_longest(lons, lats, names)
             ]
         )
-    arg_dict["pour_points"] = pour_points[:-1]  # Remove last new line character
+    arg_dict["pour_points"] = pour_points.strip("\n")
 
 
 def create_full_arg_dict(args):
@@ -122,12 +122,8 @@ def create_full_arg_dict(args):
 
         arg_dict[arg] = args.get(arg, default=default)
 
-    # Obtain proper input files from THREDDS
     get_input_files(arg_dict)
-
-    # Concatenate lons, lats, and names into long pour points string
     create_pour_points(arg_dict)
-
     return arg_dict
 
 
