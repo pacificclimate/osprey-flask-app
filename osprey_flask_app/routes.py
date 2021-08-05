@@ -43,8 +43,8 @@ def input_route():
     Returns output netCDF file after Convolution process.
     """
     args = request.args
-    arg_dict = create_full_arg_dict(args)
     try:
+        arg_dict = create_full_arg_dict(args)
         inputs_are_valid(arg_dict)
     except Exception as e:
         return Response(str(e), status=400)
