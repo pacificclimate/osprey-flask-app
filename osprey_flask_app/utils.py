@@ -2,7 +2,6 @@ import logging
 import requests
 import netCDF4
 from dateutil.parser import parse
-from itertools import zip_longest
 
 
 def setup_logging(log_level):
@@ -73,23 +72,23 @@ def create_pour_points(arg_dict):
     lons = arg_dict["lons"].split(",")
     lats = arg_dict["lats"].split(",")
     names = arg_dict["names"].split(",")
-    try:
+    if "long_names" in arg_dict:
         long_names = arg_dict["long_names"].split(",")
         pour_points = "lons,lats,names,long_names\n"
         pour_points += "".join(
             [
                 ",".join((str(lon), str(lat), str(name), str(long_name))) + "\n"
-                for (lon, lat, name, long_name) in zip_longest(
-                    lons, lats, names, long_names
-                )  # Coordinates with missing attributes are padded with 'None' values
+                for (lon, lat, name, long_name) in zip(
+                    lons, lats, names, long_names, strict=True
+                )  # ValueError raised if the lists do not have equal length
             ]
         )
-    except AttributeError:  # long_names not given
+    else:
         pour_points = "lons,lats,names\n"
         pour_points += "".join(
             [
                 ",".join((str(lon), str(lat), str(name))) + "\n"
-                for (lon, lat, name) in zip_longest(lons, lats, names)
+                for (lon, lat, name) in zip(lons, lats, names, strict=True)
             ]
         )
         
@@ -105,29 +104,20 @@ def create_full_arg_dict(args):
         1. args (request.args): arguments given by url
     """
 
-    # Optional url arguments (format is <arg:default_value>)
-    opt_args = [
-        "long_names:None",
-        "model:ACCESS1-0_rcp45_r1i1p1",
-        "params_config_dict:None",
-        "convolve_config_dict:None",
-        "version:1",
-        "loglevel:INFO",
-        "np:1",
-    ]
+    # Optional url arguments
+    opt_args = {
+        "long_names": None,
+        "model": "ACCESS1-0_rcp45_r1i1p1",
+        "params_config_dict": None,
+        "convolve_config_dict": None,
+        "version": 1,
+        "loglevel": "INFO",
+        "np": 1,
+    }
     arg_dict = dict(args)
-    for arg in opt_args:
-        (arg, default) = arg.split(":")
-        if default == "None":
-            default = None
-
-        # Convert default value to int if possible
-        try:
-            default = int(default)
-        except (ValueError, TypeError):
-            pass
-
-        arg_dict[arg] = args.get(arg, default=default)
+    for (arg, default) in opt_args.items():
+        if arg not in arg_dict:
+            arg_dict[arg] = default
 
     arg_dict_with_files = get_input_files(arg_dict)
     full_arg_dict = create_pour_points(arg_dict_with_files)
