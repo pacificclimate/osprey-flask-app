@@ -73,15 +73,21 @@ def create_pour_points(arg_dict):
     lons = arg_dict["lons"].split(",")
     lats = arg_dict["lats"].split(",")
     names = arg_dict["names"].split(",")
+    length = len(lons)
+    if not all(len(l) == length for l in [lats, names]):
+        raise ValueError("Lists do not have equal length.")
+
     if "long_names" in arg_dict:
         long_names = arg_dict["long_names"].split(",")
+        if len(long_names) != length:
+            raise ValueError(
+                "Length of long_names is not equal to lengths of other lists."
+            )
         pour_points = "lons,lats,names,long_names\n"
         pour_points += "".join(
             [
                 ",".join((str(lon), str(lat), str(name), str(long_name))) + "\n"
-                for (lon, lat, name, long_name) in zip(
-                    lons, lats, names, long_names, strict=True
-                )  # ValueError raised if the lists do not have equal length
+                for (lon, lat, name, long_name) in zip(lons, lats, names, long_names)
             ]
         )
     else:
@@ -89,7 +95,7 @@ def create_pour_points(arg_dict):
         pour_points += "".join(
             [
                 ",".join((str(lon), str(lat), str(name))) + "\n"
-                for (lon, lat, name) in zip(lons, lats, names, strict=True)
+                for (lon, lat, name) in zip(lons, lats, names)
             ]
         )
 
@@ -107,7 +113,6 @@ def create_full_arg_dict(args):
 
     # Optional url arguments
     opt_args = {
-        "long_names": None,
         "model": "ACCESS1-0_rcp45_r1i1p1",
         "params_config_dict": None,
         "convolve_config_dict": None,
@@ -148,6 +153,7 @@ def inputs_are_valid(arg_dict):
     pour_points = arg_dict["pour_points"].split("\n")
     pour_points = pour_points[1:]  # Do not check header
     for point in pour_points:
+        point = point.split(",")
         (lon, lat) = (float(point[0]), float(point[1]))
 
     # Check filepaths
