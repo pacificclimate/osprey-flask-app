@@ -63,12 +63,13 @@ def get_input_files(arg_dict):
 
     return new_arg_dict
 
+
 def create_pour_points(arg_dict):
     """ "Create pour points string from (lon, lat) coordinates given in request url.
     Parameters
         1. arg_dict (dict): dictionary containing coordinates and mapping to pour points file
     """
-    
+
     lons = arg_dict["lons"].split(",")
     lats = arg_dict["lats"].split(",")
     names = arg_dict["names"].split(",")
@@ -91,7 +92,7 @@ def create_pour_points(arg_dict):
                 for (lon, lat, name) in zip(lons, lats, names, strict=True)
             ]
         )
-        
+
     new_arg_dict = dict(arg_dict)
     new_arg_dict["pour_points"] = pour_points.strip("\n")
     return new_arg_dict
