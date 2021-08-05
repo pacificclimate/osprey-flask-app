@@ -91,7 +91,7 @@ def output_route(job_id):
 
     job_exception = job.exception()
     if job_exception is not None:
-        return Response("Process has failed. " + str(job_exception), status=404)
+        return Response(f"Process has failed. {job_exception}", status=404)
 
     try:
         outpath = job.result()
