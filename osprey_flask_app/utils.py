@@ -27,6 +27,7 @@ def get_input_files(arg_dict):
     Parameters
         1. arg_dict (dict): dictionary to contain mappings to files
     """
+
     url_prefix = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds"
     url_suffix = "datasets/storage/data/projects/hydrology/vic_gen2"
     base_http_url = f"{url_prefix}/fileServer/{url_suffix}"
@@ -36,10 +37,11 @@ def get_input_files(arg_dict):
     model = arg_dict["model"]  # Climate model to use to get input forcings
     model_subdir = f"{model}/flux"
 
-    arg_dict[
+    new_arg_dict = dict(arg_dict)
+    new_arg_dict[
         "uh_box"
     ] = f"{base_http_url}/input/routing/uh/uhbox.csv"  # Unit hydrograph to route flow to the edge of each grid cell. Used for all RVIC runs
-    grid_id = arg_dict["grid_id"].lower()
+    grid_id = new_arg_dict["grid_id"].lower()
     if grid_id == "columbia":
         routing = "pcic.pnw.rvic.input_20170927.nc"
         domain = "domain.pnw.pcic.20170927.nc"
@@ -50,22 +52,24 @@ def get_input_files(arg_dict):
         routing = "rvic.parameters_fraser_v2.nc"
         domain = "rvic.domain_fraser_v2.nc"
 
-    arg_dict[
+    new_arg_dict[
         "routing"
     ] = f"{routing_url}/{grid_id}/parameters/{routing}"  # Routing inputs netCDF
-    arg_dict[
+    new_arg_dict[
         "domain"
     ] = f"{routing_url}/{grid_id}/parameters/{domain}"  # CESM compliant domain file
-    arg_dict[
+    new_arg_dict[
         "input_forcings"
     ] = f"{projections_url}/{grid_id}/{grid_id.upper()}/{model_subdir}/{grid_id}_vicset2_1945to2100.nc"  # Land data netCDF forcings
 
+    return new_arg_dict
 
 def create_pour_points(arg_dict):
     """ "Create pour points string from (lon, lat) coordinates given in request url.
     Parameters
         1. arg_dict (dict): dictionary containing coordinates and mapping to pour points file
     """
+    
     lons = arg_dict["lons"].split(",")
     lats = arg_dict["lats"].split(",")
     names = arg_dict["names"].split(",")
@@ -88,7 +92,10 @@ def create_pour_points(arg_dict):
                 for (lon, lat, name) in zip_longest(lons, lats, names)
             ]
         )
-    arg_dict["pour_points"] = pour_points.strip("\n")
+        
+    new_arg_dict = dict(arg_dict)
+    new_arg_dict["pour_points"] = pour_points.strip("\n")
+    return new_arg_dict
 
 
 def create_full_arg_dict(args):
@@ -122,9 +129,9 @@ def create_full_arg_dict(args):
 
         arg_dict[arg] = args.get(arg, default=default)
 
-    get_input_files(arg_dict)
-    create_pour_points(arg_dict)
-    return arg_dict
+    arg_dict_with_files = get_input_files(arg_dict)
+    full_arg_dict = create_pour_points(arg_dict_with_files)
+    return full_arg_dict
 
 
 def inputs_are_valid(arg_dict):
