@@ -147,8 +147,7 @@ def inputs_are_valid(arg_dict):
     pour_points = arg_dict["pour_points"].split("\n")
     pour_points = pour_points[1:]  # Do not check header
     for point in pour_points:
-        if "None" in point:
-            raise ValueError(f"Coordinate is missing an attribute: {point}")
+        (lon, lat) = (float(point[0]), float(point[1]))
 
     # Check filepaths
     files = (
