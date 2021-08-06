@@ -1,0 +1,10 @@
+version: '1.0'
+services:
+        osprey-flask-app:
+                image: pcic/osprey-flask-app:1.0.0
+                container_name: osprey-flask-app
+                ports:
+        networks:
+                default:
+                        external:
+                                name: pcicbr0
