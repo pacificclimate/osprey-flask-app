@@ -39,8 +39,5 @@ setup(
         "tests": ["configs/*.cfg", "data/samples/*.cfg"],
     },
     include_package_data=True,
-    install_requires=reqs,
-    extras_require={
-        "dev": test_reqs,
-    },  # pip install ".[dev]"
+    install_requires=["flask", "netCDF4", "xarray", "birdhouse-birdy", "wps-tools"],
 )
