@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -U pip pipenv
-        pip install --dev
+        pipenv install --dev
     - name: Test with pytest (full)
       if: github.ref == 'refs/heads/master'
       run: |
