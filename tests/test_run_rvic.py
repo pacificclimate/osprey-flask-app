@@ -93,7 +93,6 @@ def full_rvic_test(kwargs, client, valid_input=True):
                 "stop_date": "2012-12-31",
                 "lons": "-118.0938",
                 "lats": "51.09375",
-                "names": "sample",
                 "params_config_dict": {
                     "OPTIONS": {
                         "LOG_LEVEL": "CRITICAL",
@@ -109,6 +108,49 @@ def full_rvic_test(kwargs, client, valid_input=True):
     ],
 )
 def test_run_full_rvic_online_valid(kwargs, client):
+    full_rvic_test(kwargs, client, valid_input=True)
+
+
+@pytest.mark.online
+@pytest.mark.parametrize(
+    ("kwargs"),
+    [
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "COLUMBIA",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-116.46875,-118.53125,-118.21875",
+                "lats": "50.90625,52.09375,51.21875",
+                "names": "BCHSP,BCHMI,BCHRE",
+                "long_names": "Spillimacheen,Mica,Revelstoke",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "PEACE",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-124.90625,-121.21875,-120.71875",
+                "lats": "57.21875,56.65625,56.28125",
+                "names": "ARNT7,BRBAC,BRNFS",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "grid_id": "FRASER",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-119.65625,-123.84375,-122.59375",
+                "lats": "50.96875,52.96875,52.96875",
+            }
+        ),
+    ],
+)
+def test_run_full_rvic_multiple_points(kwargs, client):
     full_rvic_test(kwargs, client, valid_input=True)
 
 

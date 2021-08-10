@@ -64,6 +64,23 @@ def get_input_files(arg_dict):
     return new_arg_dict
 
 
+def concatenate_points(attrs):
+    """Concatenate pour point coordinates in a format similar to a csv file.
+    Parameters
+        1. attrs (dict): Pour point attributes. lons/lats are required, but names and long_names
+        are optional.
+    """
+    length = len(attrs["lons"])
+    if not all(len(attrs[l]) == length for l in attrs.keys()):
+        raise ValueError("Lengths of lists are not equal.")
+
+    pour_points = ",".join(attrs.keys()) + "\n"
+    for i in range(length):  # Add pour points individually
+        pour_points += ",".join([val[i] for val in attrs.values()]) + "\n"
+    pour_points = pour_points.strip("\n")
+    return pour_points
+
+
 def create_pour_points(arg_dict):
     """ "Create pour points string from (lon, lat) coordinates given in request url.
     Parameters
@@ -72,35 +89,14 @@ def create_pour_points(arg_dict):
 
     lons = arg_dict["lons"].split(",")
     lats = arg_dict["lats"].split(",")
-    names = arg_dict["names"].split(",")
-    length = len(lons)
-    if not all(len(l) == length for l in [lats, names]):
-        raise ValueError("Lists do not have equal length.")
-
+    attrs = {"lons": lons, "lats": lats}
+    if "names" in arg_dict:
+        attrs["names"] = arg_dict["names"].split(",")
     if "long_names" in arg_dict:
-        long_names = arg_dict["long_names"].split(",")
-        if len(long_names) != length:
-            raise ValueError(
-                "Length of long_names is not equal to lengths of other lists."
-            )
-        pour_points = "lons,lats,names,long_names\n"
-        pour_points += "".join(
-            [
-                ",".join((str(lon), str(lat), str(name), str(long_name))) + "\n"
-                for (lon, lat, name, long_name) in zip(lons, lats, names, long_names)
-            ]
-        )
-    else:
-        pour_points = "lons,lats,names\n"
-        pour_points += "".join(
-            [
-                ",".join((str(lon), str(lat), str(name))) + "\n"
-                for (lon, lat, name) in zip(lons, lats, names)
-            ]
-        )
+        attrs["long_names"] = arg_dict["long_names"].split(",")
 
     new_arg_dict = dict(arg_dict)
-    new_arg_dict["pour_points"] = pour_points.strip("\n")
+    new_arg_dict["pour_points"] = concatenate_points(attrs)
     return new_arg_dict
 
 
