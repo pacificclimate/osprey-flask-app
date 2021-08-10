@@ -1,10 +1,6 @@
 # Configuration
 APP_ROOT := $(abspath $(lastword $(MAKEFILE_LIST))/..)
 APP_NAME := osprey-flask-app
-VENV?=/tmp/osprey-flask-app-venv
-PYTHON=${VENV}/bin/python3
-PIP=${VENV}/bin/pip
-export PIP_INDEX_URL=https://pypi.pacificclimate.org/simple
 
 # Notebook targets
 LOCAL_URL = http://localhost:5000
@@ -35,14 +31,14 @@ help:
 ## Build targets
 
 .PHONY: install
-install: venv
+install:
 	@echo "Installing application ..."
-	@-bash -c '${PIP} install -e .'
+	@-bash -c 'pipenv install'
 
 .PHONY: develop
-develop: venv
+develop:
 	@echo "Installing development requirements for tests and docs ..."
-	@-bash -c '${PIP} install -e ".[dev]"'
+	@-bash -c 'pipenv install --dev'
 	@export FLASK_ENV=development
 
 .PHONY: run
@@ -84,26 +80,22 @@ clean-dist: clean
 	## do not use git clean -e/--exclude here, add them to .gitignore instead
 	@-git clean -dfx
 
-.PHONY: venv
-venv:
-	test -d $(VENV) || python3 -m venv $(VENV)
-
 ## Test targets
 
 .PHONY: test
-test: venv
+test:
 	@echo "Running tests (skip slow and online tests) ..."
-	@bash -c '${PYTHON} -m pytest -v -m "not slow and not online" tests/'
+	@bash -c 'pipenv run pytest -v -m "not slow and not online" tests/'
 
 .PHONY: test-all
-test-all: venv
+test-all:
 	@echo "Running all tests (including slow and online tests) ..."
-	@bash -c '${PYTHON} -m pytest -v tests/'
+	@bash -c 'pipenv run pytest -v tests/'
 
 .PHONY: lint
-lint: venv
+lint:
 	@echo "Running black code style checks ..."
-	@bash -c '${PYTHON} -m black . --check'
+	@bash -c 'pipenv run black . --check'
 
 ## Deployment targets
 
