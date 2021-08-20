@@ -53,7 +53,6 @@ def full_rvic_test(kwargs, client, valid_input=True):
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "lons": "-116.46875",
@@ -65,7 +64,6 @@ def full_rvic_test(kwargs, client, valid_input=True):
         (
             {
                 "case_id": "sample",
-                "grid_id": "PEACE",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "lons": "-124.90625",
@@ -76,7 +74,6 @@ def full_rvic_test(kwargs, client, valid_input=True):
         (
             {
                 "case_id": "sample",
-                "grid_id": "FRASER",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "lons": "-119.65625",
@@ -88,7 +85,6 @@ def full_rvic_test(kwargs, client, valid_input=True):
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "lons": "-118.0938",
@@ -118,7 +114,6 @@ def test_run_full_rvic_online_valid(kwargs, client):
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "lons": "-116.46875,-118.53125,-118.21875",
@@ -130,7 +125,6 @@ def test_run_full_rvic_online_valid(kwargs, client):
         (
             {
                 "case_id": "sample",
-                "grid_id": "PEACE",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "lons": "-124.90625,-121.21875,-120.71875",
@@ -141,7 +135,6 @@ def test_run_full_rvic_online_valid(kwargs, client):
         (
             {
                 "case_id": "sample",
-                "grid_id": "FRASER",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "lons": "-119.65625,-123.84375,-122.59375",
@@ -161,7 +154,6 @@ def test_run_full_rvic_multiple_points(kwargs, client):
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012120100",  # Invalid date
                 "stop_date": "2012-12-31",
                 "lons": "-118.0938",
@@ -172,23 +164,31 @@ def test_run_full_rvic_multiple_points(kwargs, client):
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
                 "lons": "-118.0938",
-                "lats": "51.09375, 51.19375",  # Extra latitude
+                "lats": "51.09375,51.19375",  # Extra latitude
                 "names": "sample",
             }
         ),
         (
             {
                 "case_id": "sample",
-                "grid_id": "SAMPLE",  # Grid id does not have corresponding THREDDS files
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "lons": "-118.0938",
-                "lats": "51.09375",
+                "lons": "0",  # Point not in any modelled watershed
+                "lats": "0",
                 "names": "sample",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-118.0938,-124.90625",  # Points are in different watersheds
+                "lats": "51.09375,57.21875",
+                "names": "sample1,sample2",
                 "params_config_dict": {
                     "OPTIONS": {
                         "LOG_LEVEL": "CRITICAL",
