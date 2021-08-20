@@ -2,6 +2,7 @@ import numpy as np
 import logging
 import requests
 import netCDF4
+import json
 from dateutil.parser import parse
 
 
@@ -60,16 +61,13 @@ def get_input_files(arg_dict):
     if len(lons) != len(lats):
         raise ValueError("Lons and lats must have the same size.")
 
-    param_files = {
-        "columbia": ("pcic.pnw.rvic.input_20170927.nc", "domain.pnw.pcic.20170927.nc"),
-        "peace": ("bc.rvic.peace.20171019.nc", "domain.rvic.peace.20161018.nc"),
-        "fraser": ("rvic.parameters_fraser_v2.nc", "rvic.domain_fraser_v2.nc"),
-    }
+    domains = json.load(open("domains.json"))
+    nc_files = domains["nc_files"]
     routing_file = None
     for (lon, lat) in zip(lons, lats):
         found_region = False
-        for region in param_files.keys():
-            domain_file = param_files[region][1]
+        for region in nc_files.keys():
+            domain_file = nc_files[region]["domain"]
             domain = netCDF4.Dataset(f"{routing_url}/{region}/parameters/{domain_file}")
             (lon_index, lat_index) = find_nearest(domain, float(lon), float(lat))
             frac = np.ma.getdata(
@@ -78,13 +76,13 @@ def get_input_files(arg_dict):
             pour_point_frac = frac[lat_index][lon_index]
             if not np.ma.getmask(pour_point_frac) and pour_point_frac == 1:
                 if (
-                    routing_file != None and routing_file != param_files[region][0]
+                    routing_file != None and routing_file != nc_files[region]["routing"]
                 ):  # Only relevant for pour points after first one
                     raise ValueError("All pour points must be in the same region.")
                 else:
                     found_region = True
-                    routing_file = param_files[region][0]
-                    forcings_file = f"{region}_vicset2_1945to2100.nc"
+                    routing_file = nc_files[region]["routing"]
+                    forcings_file = nc_files[region]["forcings"]
                     new_arg_dict[
                         "grid_id"
                     ] = f"{region.upper()}"  # Routing domain grid shortname
