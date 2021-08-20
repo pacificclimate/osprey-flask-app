@@ -7,7 +7,7 @@ a request is submitted. The maximum number of workers running each job, given by
 We can use `make` to handle the installation process and to initialize the environment variables needed for the app to run. Copy and paste this section into your terminal:
 ```
 make
-source /tmp/osprey-flask-app-venv/bin/activate
+pipenv shell
 ```
 
 ## Run App
