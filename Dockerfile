@@ -9,9 +9,8 @@ LABEL Maintainer="https://github.com/pacificclimate/osprey-flask-app" \
 
 COPY requirements.txt ./
 
-RUN pip install -U pip && \
-    pip install --user -r requirements.txt && \
-    pip install --user gunicorn
+RUN pip install -U pipenv && \
+    pipenv install
 
 ADD . /app
 WORKDIR /app
