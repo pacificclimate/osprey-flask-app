@@ -1,10 +1,15 @@
 version: '1.0'
 services:
         osprey-flask-app:
+                build:
+                        dockerfile: ./Dockerfile
                 image: pcic/osprey-flask-app:1.0.0
                 container_name: osprey-flask-app
-                ports:
-        networks:
-                default:
-                        external:
-                                name: pcicbr0
+                ports: "30110:5000"
+                volumes:
+                        - /storage/data/projects/hydrology/vic_gen2/input/routing
+                        - /storage/data/projects/hydrology/vic_gen2/output/projections_LE
+networks:
+        default:
+                external:
+                        name: pcicbr0
