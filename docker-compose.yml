@@ -3,7 +3,7 @@ services:
         osprey-flask-app:
                 build:
                         dockerfile: ./Dockerfile
-                image: pcic/osprey-flask-app:1.0.0
+                image: pcic/osprey-flask-app:0.1.0
                 container_name: osprey-flask-app
                 ports: "30110:5000"
                 volumes:

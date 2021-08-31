@@ -5,7 +5,7 @@ ENV PIP_INDEX_URL="https://pypi.pacificclimate.org/simple/"
 LABEL Maintainer="https://github.com/pacificclimate/osprey-flask-app" \
       Description="osprey-flask-app" \
       Vendor="pacificclimate" \
-      Version="1.0.0"
+      Version="0.1.0"
 
 COPY Pipfile ./
 
