@@ -18,3 +18,4 @@ tests/
 *.yml
 *.in
 *.ini
+*.md
