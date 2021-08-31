@@ -38,7 +38,7 @@ def input_route():
         11. params_config_dict (str): Dictionary containing input configuration for Parameters process.
         12. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
 
-    Example url: http://127.0.0.1:5001/osprey/input?case_id=sample&run_startdate=2012-12-01-00&stop_date=2012-12-31&lons=-116.46875&lats=50.90625&names=BCHSP&params_config_dict={"OPTIONS": {"LOG_LEVEL": "CRITICAL"}}&convolve_config_dict ={"OPTIONS": {"CASESTR": "Historical"}}
+    Example url: http://127.0.0.1:5001/osprey/input?case_id=sample&run_startdate=2012-12-01-00&stop_date=2012-12-31&lons=-116.46875&lats=50.90625&names=BCHSP&params_config_dict={"OPTIONS": {"LOG_LEVEL": "CRITICAL"}}&convolve_config_dict={"OPTIONS": {"CASESTR": "Historical"}}
     Returns output netCDF file after Convolution process.
     """
     args = request.args
