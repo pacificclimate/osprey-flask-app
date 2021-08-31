@@ -19,7 +19,6 @@ def run_full_rvic(arg_dict, url=get_target_url("osprey")):
         routing=arg_dict["routing"],
         domain=arg_dict["domain"],
         input_forcings=arg_dict["input_forcings"],
-        loglevel=arg_dict["loglevel"],
         version=arg_dict["version"],
         np=arg_dict["np"],
         params_config_dict=arg_dict["params_config_dict"],

@@ -8,6 +8,7 @@ import os
 import requests
 import concurrent.futures
 import uuid
+import json
 
 osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
 pool = concurrent.futures.ThreadPoolExecutor(
@@ -24,19 +25,18 @@ def input_route():
     """Provide route to get input parameters for full_rvic process.
     Expected inputs (given in url)
         1. case_id (str): Case ID for the RVIC process.
-        2. run_startdate (str): Run start date (yyyy-mm-dd-hh). Only used for startup and drystart runs.
+        2. run_startdate (str): Run start date. Only used for startup and drystart runs.
         3. stop_date (str): Run stop date.
         4. lons (str): Comma-separated longitudes for pour point outlets.
         5. lats (str): Comma-separated latitudes for pour point outlets.
         6. names (str): Optional Comma-separated outlets to route to (one for each [lon, lat] coordinate)
         7. long_names (str): Optional longer descriptions of pour point outlets.
-        8. model (str): Climate model to use to get input forcings. Default is 'ACCESS1-0_rcp45_r1i1p1'.
-        9. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET').
-            Default is 'INFO'.
-        10. version (int): Return RVIC version string (1) or not (0). Default is 1.
-        11. np (int): Number of processors used to run job. Default is 1.
-        12. params_config_dict (str): Dictionary containing input configuration for Parameters process.
-        13. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
+        8. model (str): Climate model to use to get input forcings. List of models can be found
+        in '/osprey/models'. Default is 'ACCESS1-0_rcp45_r1i1p1'.
+        9. version (int): Return RVIC version string (1) or not (0). Default is 1.
+        10. np (int): Number of processors used to run job. Default is 1.
+        11. params_config_dict (str): Dictionary containing input configuration for Parameters process.
+        12. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
 
     Example url: http://127.0.0.1:5001/osprey/input?case_id=sample&run_startdate=2012-12-01-00&stop_date=2012-12-31&lons=-116.46875&lats=50.90625&names=BCHSP&params_config_dict={"OPTIONS": {"LOG_LEVEL": "CRITICAL"}}&convolve_config_dict ={"OPTIONS": {"CASESTR": "Historical"}}
     Returns output netCDF file after Convolution process.
@@ -57,6 +57,15 @@ def input_route():
         + url_for("osprey.status_route", job_id=job_id),
         status=202,
     )
+
+
+@osprey.route("/models", methods=["GET"])
+def models_route():
+    """Provide route to give list of available climate models for input forcings."""
+    models = json.load(open("models.json"))
+    models = models["models"]
+    model_list = "<br>".join(models)
+    return Response(f"Available climate models:<br><br>{model_list}", status=201)
 
 
 @osprey.route("/status/<job_id>", methods=["GET"])

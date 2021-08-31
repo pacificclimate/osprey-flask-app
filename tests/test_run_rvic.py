@@ -69,6 +69,7 @@ def full_rvic_test(kwargs, client, valid_input=True):
                 "lons": "-124.90625",
                 "lats": "57.21875",
                 "names": "ARNT7",
+                "model": "CNRM-CM5_rcp85_r1i1p1",
             }
         ),
         (
@@ -189,6 +190,27 @@ def test_run_full_rvic_multiple_points(kwargs, client):
                 "lons": "-118.0938,-124.90625",  # Points are in different watersheds
                 "lats": "51.09375,57.21875",
                 "names": "sample1,sample2",
+                "params_config_dict": {
+                    "OPTIONS": {
+                        "LOG_LEVEL": "CRITICAL",
+                    },
+                },
+                "convolve_config_dict": {
+                    "OPTIONS": {
+                        "CASESTR": "Historical",
+                    },
+                },
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-118.0938",
+                "lats": "51.09375",
+                "names": "sample",
+                "model": "sample_model",  # Climate model does not exist
                 "params_config_dict": {
                     "OPTIONS": {
                         "LOG_LEVEL": "CRITICAL",

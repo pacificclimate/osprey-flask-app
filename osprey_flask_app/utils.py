@@ -153,7 +153,6 @@ def create_full_arg_dict(args):
         "params_config_dict": None,
         "convolve_config_dict": None,
         "version": 1,
-        "loglevel": "INFO",
         "np": 1,
     }
     arg_dict = dict(args)
@@ -167,18 +166,20 @@ def create_full_arg_dict(args):
 
 
 def inputs_are_valid(arg_dict):
-    """Check that start/stop dates have a proper format, all pour points have (lon, lat, name), and filepaths exist on THREDDS.
+    """Check that start/stop dates have a proper format, all pour points have (lon, lat),
+    the specified climate model can be used by the service, and filepaths exist on THREDDS.
     Parameters
         1. arg_dict (dict): arguments supplied to osprey with corresponding values. This function checks
         the following keys.
 
             1. run_startdate (str): Run start date. Only used for startup and drystart runs.
             2. stop_date (str): Run stop date.
-            3. pour points (str): Outlets to route to [lons, lats]
-            4. uh_box (path): Defines the unit hydrograph to route flow to the edge of each grid cell.
-            5. routing (path): Routing inputs netCDF.
-            6. domain (path): CESM compliant domain file.
-            7. input_forcings (path): Land data netCDF forcings.
+            3. model (str): Climate model to use to get input forcings.
+            4. pour points (str): Outlets to route to [lons, lats].
+            5. uh_box (path): Defines the unit hydrograph to route flow to the edge of each grid cell.
+            6. routing (path): Routing inputs netCDF.
+            7. domain (path): CESM compliant domain file.
+            8. input_forcings (path): Land data netCDF forcings.
     """
 
     # Check start/stop dates
@@ -191,6 +192,13 @@ def inputs_are_valid(arg_dict):
     for point in pour_points:
         point = point.split(",")
         (lon, lat) = (float(point[0]), float(point[1]))
+
+    # Check climate model
+    models = json.load(open("models.json"))
+    models_avail = models["models"]
+    model = arg_dict["model"]
+    if model not in models_avail:
+        raise ValueError(f"Climate model '{model}' not available for service")
 
     # Check filepaths
     files = (
