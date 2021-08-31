@@ -13,8 +13,17 @@ def find_nearest(domain, lon, lat):
         2. lon (float): longitude for pour point
         3. lat (float): latitude for pour point
     """
+    if (lon < -180 or lon > 180) or (lat < -180 or lat > 180):
+        raise ValueError(
+            "Invalid coordinate. Both lon and lat must be in the interval [-180, 180]."
+        )
+
     domain_lons = np.ma.getdata(domain["lon"])
     domain_lats = np.ma.getdata(domain["lat"])
+    if (lon < np.min(domain_lons) or lon > np.max(domain_lons)) or (
+        lat < np.min(domain_lats) or lat > np.max(domain_lats)
+    ):  # Coordinate is outside domain
+        return (-1, -1)
     lon_index = np.argmin(np.abs(domain_lons - lon))
     lat_index = np.argmin(np.abs(domain_lats - lat))
     return (lon_index, lat_index)
@@ -53,6 +62,8 @@ def get_input_files(arg_dict):
             domain_file = nc_files[region]["domain"]
             domain = netCDF4.Dataset(f"{routing_url}/{region}/parameters/{domain_file}")
             (lon_index, lat_index) = find_nearest(domain, float(lon), float(lat))
+            if (lon_index, lat_index) == (-1, -1):
+                continue
             frac = np.ma.getdata(
                 domain["frac"]
             )  # Values are either masked (outside region), < 1 (partially in region), or 1 (completely in region)
