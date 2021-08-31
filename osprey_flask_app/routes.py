@@ -8,6 +8,7 @@ import os
 import requests
 import concurrent.futures
 import uuid
+import json
 
 osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
 pool = concurrent.futures.ThreadPoolExecutor(
@@ -23,32 +24,26 @@ jobs = {}  # Used to check if process is still executing and to return output
 def input_route():
     """Provide route to get input parameters for full_rvic process.
     Expected inputs (given in url)
-        1. case_id (str): Case ID for the RVIC process
-        2. grid_id (str): Routing domain grid shortname
-        3. run_startdate (str): Run start date (yyyy-mm-dd-hh). Only used for startup and drystart runs.
-        4. stop_date (str): Run stop date.
-        5. pour_points (path): Comma-separated file of outlets to route to [lons, lats]
-        6. uh_box (path): Defines the unit hydrograph to route flow to the edge of each grid cell.
-        7. routing (path): Routing inputs netCDF.
-        8. domain (path): CESM compliant domain file.
-        9. input_forcings (path): Land data netCDF forcings.
-        10. loglevel (str): Logging level (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET').
-            Default is 'INFO'.
-        11. version (int): Return RVIC version string (1) or not (0). Default is 1.
-        12. np (int): Number of processors used to run job. Default is 1.
-        13. params_config_file (path): Path to input configuration file Parameters process.
-        14. params_config_dict (str): Dictionary containing input configuration for Parameters process
-            (mutually exclusive with params_config_file).
-        15. convolve_config_file (path): Path to input configuration file Convolution process.
-        16. convolve_config_dict (str): Dictionary containing input configuration for Convolution process
-            (mutually exclusive with convolve_config_file).
+        1. case_id (str): Case ID for the RVIC process.
+        2. run_startdate (str): Run start date. Only used for startup and drystart runs.
+        3. stop_date (str): Run stop date.
+        4. lons (str): Comma-separated longitudes for pour point outlets.
+        5. lats (str): Comma-separated latitudes for pour point outlets.
+        6. names (str): Optional Comma-separated outlets to route to (one for each [lon, lat] coordinate)
+        7. long_names (str): Optional longer descriptions of pour point outlets.
+        8. model (str): Climate model to use to get input forcings. List of models can be found
+        in '/osprey/models'. Default is 'ACCESS1-0_rcp45_r1i1p1'.
+        9. version (int): Return RVIC version string (1) or not (0). Default is 1.
+        10. np (int): Number of processors used to run job. Default is 1.
+        11. params_config_dict (str): Dictionary containing input configuration for Parameters process.
+        12. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
 
-    Example url: http://127.0.0.1:5000/data/?case_id=sample&grid_id=COLUMBIA&run_startdate=2011-12-01-00&stop_date=2012-12-31&pour_points=      sample_pour.txt&uh_box=uhbox.csv&routing=sample_flow_parameters.nc&domain=/sample_routing_domain.nc&input_forcings=sample_input_forcings.nc&loglevel=DEBUG&params_config_file=parameters.cfg&convolve_config_file=convolve.cfg
+    Example url: http://127.0.0.1:5001/osprey/input?case_id=sample&run_startdate=2012-12-01-00&stop_date=2012-12-31&lons=-116.46875&lats=50.90625&names=BCHSP&params_config_dict={"OPTIONS": {"LOG_LEVEL": "CRITICAL"}}&convolve_config_dict ={"OPTIONS": {"CASESTR": "Historical"}}
     Returns output netCDF file after Convolution process.
     """
     args = request.args
-    arg_dict = create_full_arg_dict(args)
     try:
+        arg_dict = create_full_arg_dict(args)
         inputs_are_valid(arg_dict)
     except Exception as e:
         return Response(str(e), status=400)
@@ -62,6 +57,15 @@ def input_route():
         + url_for("osprey.status_route", job_id=job_id),
         status=202,
     )
+
+
+@osprey.route("/models", methods=["GET"])
+def models_route():
+    """Provide route to give list of available climate models for input forcings."""
+    models = json.load(open("models.json"))
+    models = models["models"]
+    model_list = "<br>".join(models)
+    return Response(f"Available climate models:<br><br>{model_list}", status=201)
 
 
 @osprey.route("/status/<job_id>", methods=["GET"])
@@ -95,7 +99,7 @@ def output_route(job_id):
 
     job_exception = job.exception()
     if job_exception is not None:
-        return Response("Process has failed. " + job_exception, status=404)
+        return Response(f"Process has failed. {job_exception}", status=404)
 
     try:
         outpath = job.result()

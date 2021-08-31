@@ -7,7 +7,7 @@ a request is submitted. The maximum number of workers running each job, given by
 We can use `make` to handle the installation process and to initialize the environment variables needed for the app to run. Copy and paste this section into your terminal:
 ```
 make
-source /tmp/osprey-flask-app-venv/bin/activate
+pipenv shell
 ```
 
 ## Run App
@@ -19,14 +19,16 @@ After initializing these variables, the app can be started by running the follow
 flask run --host=<host> --port=<port>
 ```
 
-The app is then used by inputting the parameters required for `osprey` in the url. The following shows an example of how to do so. The full list of expected inputs is described in the [input_route](https://github.com/pacificclimate/osprey-flask-app/blob/i1-create-init-app/osprey_flask_app/routes.py#L19) function.
+The app is then used by inputting the parameters required for `osprey` in the url. The following shows an example of how to do so. The full list of expected inputs is described in the [input_route](https://github.com/pacificclimate/osprey-flask-app/blob/i5-simplify-inputs/osprey_flask_app/routes.py#L19) function. There are some aspects to note when supplying inputs:
+  1. Rather than provide a `pour_points` file containing coordinates to route the streamflow to, the user must provide lists of `lons` and `lats`, which the app then uses to create the `pour_points` string. The pour points can optionally be described in greater detail using `names` and `long_names`. Example pour points for each watershed can be found in the [samples](https://github.com/pacificclimate/osprey-flask-app/tree/i5-simplify-inputs/tests/data/samples) directory.
+  2. `osprey` contains [config templates](https://github.com/pacificclimate/osprey/blob/master/osprey/config_templates.py) that are used for the `parameters` and `convolution` processes, and any options that the user would like to change must be provided as dictionaries called `param_config_dict` and `convolve_config_dict` respectively.
 
 ```
 # Generic example
-http://127.0.0.1:5000/osprey/input/?case_id=<case_id>&grid_id=<grid_id>&run_startdate=<run_startdate>&...
+http://127.0.0.1:5000/osprey/input/?case_id=<case_id>&run_startdate=<run_startdate>&...
 
 # Example
-http://127.0.0.1:5000/osprey/input/?case_id=sample&grid_id=COLUMBIA&run_startdate=2011-12-01&...
+http://127.0.0.1:5000/osprey/input/?case_id=sample&run_startdate=2011-12-01&...
 ```
 This causes the app to run the [full_rvic](https://github.com/pacificclimate/osprey/blob/master/osprey/processes/wps_full_rvic.py) process asynchronously and returns a [status](https://github.com/pacificclimate/osprey-flask-app/blob/a05e0b3fe61152f40b795eb0069d1678f32d01b8/osprey_flask_app/routes.py#L93) url that can be used to check if the process is still running or is completed.
 

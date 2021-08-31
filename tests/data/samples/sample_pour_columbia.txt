@@ -1,0 +1,8 @@
+lons,lats,names,long_names
+-116.46875,50.90625,BCHSP,Spillimacheen
+-118.53125,52.09375,BCHMI,Mica
+-118.21875,51.21875,BCHRE,Revelstoke
+-118.09375,49.96845,BCWAT,Whatshan
+-117.78125,49.35375,BCHAR,Arrow Lakes Hugh Keenleyside
+-115.34375,49.46875,BULWA,Aberfeldie
+

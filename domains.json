@@ -1,0 +1,18 @@
+{
+	"nc_files": {
+		"columbia": {
+			"routing": "pcic.pnw.rvic.input_20170927.nc",
+			"domain": "domain.pnw.pcic.20170927.nc",
+			"forcings": "columbia_vicset2_1945to2100.nc"				},
+		"peace": {
+			"routing": "bc.rvic.peace.20171019.nc",
+			"domain": "domain.rvic.peace.20161018.nc",
+			"forcings": "peace_vicset2_1945to2100.nc"
+		},
+		"fraser": {
+			"routing": "rvic.parameters_fraser_v2.nc",
+			"domain": "rvic.domain_fraser_v2.nc",
+			"forcings": "fraser_vicset2_1945to2100.nc"
+		}
+	}
+}

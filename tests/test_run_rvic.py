@@ -1,7 +1,6 @@
 import pytest
 
 from osprey_flask_app import create_app
-from wps_tools.testing import url_path
 from pkg_resources import resource_filename
 import os
 import time
@@ -54,59 +53,53 @@ def full_rvic_test(kwargs, client, valid_input=True):
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": resource_filename(
-                    "tests", "data/samples/sample_pour.txt"
-                ),
-                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
-                "routing": resource_filename(
-                    "tests", "data/samples/sample_flow_parameters.nc"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-116.46875",
+                "lats": "50.90625",
+                "names": "BCHSP",
+                "long_names": "Spillimacheen",
             }
         ),
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": url_path(
-                    "sample_pour.txt", "http", "climate_explorer_data_prep"
-                ),
-                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
-                "routing": url_path(
-                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-124.90625",
+                "lats": "57.21875",
+                "names": "ARNT7",
+                "model": "CNRM-CM5_rcp85_r1i1p1",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-119.65625",
+                "lats": "50.96875",
+                "names": "ADAMS",
+                "long_names": "ADAMS RIVER NEAR SQUILAX",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-118.0938",
+                "lats": "51.09375",
+                "params_config_dict": {
+                    "OPTIONS": {
+                        "LOG_LEVEL": "CRITICAL",
+                    },
+                },
+                "convolve_config_dict": {
+                    "OPTIONS": {
+                        "CASESTR": "Historical",
+                    },
+                },
             }
         ),
     ],
@@ -122,92 +115,112 @@ def test_run_full_rvic_online_valid(kwargs, client):
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-116.46875,-118.53125,-118.21875",
+                "lats": "50.90625,52.09375,51.21875",
+                "names": "BCHSP,BCHMI,BCHRE",
+                "long_names": "Spillimacheen,Mica,Revelstoke",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-124.90625,-121.21875,-120.71875",
+                "lats": "57.21875,56.65625,56.28125",
+                "names": "ARNT7,BRBAC,BRNFS",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-119.65625,-123.84375,-122.59375",
+                "lats": "50.96875,52.96875,52.96875",
+            }
+        ),
+    ],
+)
+def test_run_full_rvic_multiple_points(kwargs, client):
+    full_rvic_test(kwargs, client, valid_input=True)
+
+
+@pytest.mark.online
+@pytest.mark.parametrize(
+    ("kwargs"),
+    [
+        (
+            {
+                "case_id": "sample",
                 "run_startdate": "2012120100",  # Invalid date
                 "stop_date": "2012-12-31",
-                "pour_points": resource_filename(
-                    "tests", "data/samples/sample_pour.txt"
-                ),
-                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
-                "routing": resource_filename(
-                    "tests", "data/samples/sample_flow_parameter.nc"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-118.0938",
+                "lats": "51.09375",
+                "names": "sample",
             }
         ),
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": url_path(
-                    "sample_pour.txt", "http", "climate_explorer_data_prep"
-                ),
-                "uh_box": resource_filename(
-                    "tests", "data/samples/uhboxes.csv"
-                ),  # Local file does not exist
-                "routing": url_path(
-                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset2.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "-118.0938",
+                "lats": "51.09375,51.19375",  # Extra latitude
+                "names": "sample",
             }
         ),
         (
             {
                 "case_id": "sample",
-                "grid_id": "COLUMBIA",
                 "run_startdate": "2012-12-01-00",
                 "stop_date": "2012-12-31",
-                "pour_points": url_path(
-                    "sample_pour.txt", "http", "climate_explorer_data_prep"
-                ),
-                "uh_box": resource_filename("tests", "data/samples/uhbox.csv"),
-                "routing": url_path(
-                    "sample_flow_parameters.nc", "opendap", "climate_explorer_data_prep"
-                ),
-                "domain": resource_filename(
-                    "tests", "data/samples/sample_routing_domain.nc"
-                ),
-                "input_forcings": url_path(
-                    "columbia_vicset.nc",
-                    "opendap",
-                    "climate_explorer_data_prep",  # File is not on THREDDS
-                ),
-                "params_config_file": resource_filename(
-                    "tests", "data/configs/parameters.cfg"
-                ),
-                "params_config_dict": None,
-                "convolve_config_file": resource_filename(
-                    "tests", "data/configs/convolve.cfg"
-                ),
-                "convolve_config_dict": None,
+                "lons": "0",  # Point not in any modelled watershed
+                "lats": "0",
+                "names": "sample",
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-118.0938,-124.90625",  # Points are in different watersheds
+                "lats": "51.09375,57.21875",
+                "names": "sample1,sample2",
+                "params_config_dict": {
+                    "OPTIONS": {
+                        "LOG_LEVEL": "CRITICAL",
+                    },
+                },
+                "convolve_config_dict": {
+                    "OPTIONS": {
+                        "CASESTR": "Historical",
+                    },
+                },
+            }
+        ),
+        (
+            {
+                "case_id": "sample",
+                "run_startdate": "2012-12-01-00",
+                "stop_date": "2012-12-31",
+                "lons": "-118.0938",
+                "lats": "51.09375",
+                "names": "sample",
+                "model": "sample_model",  # Climate model does not exist
+                "params_config_dict": {
+                    "OPTIONS": {
+                        "LOG_LEVEL": "CRITICAL",
+                    },
+                },
+                "convolve_config_dict": {
+                    "OPTIONS": {
+                        "CASESTR": "Historical",
+                    },
+                },
             }
         ),
     ],
