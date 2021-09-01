@@ -49,6 +49,28 @@ http://127.0.0.1:5000/osprey/output/<id>
 http://127.0.0.1:5000/osprey/output/12345
 ```
 
+## Docker
+
+To run the application using a docker container, run the following:
+
+```
+docker-compose up -d
+```
+To stop the container:
+
+```
+docker-compose down -f
+```
+The urls will look similar to the aforementioned examples with a different prefix:
+
+```
+# Generic example
+http://docker-dev03.pcic.uvic.ca:30110/osprey/input/?case_id=<case_id>&run_startdate=<run_startdate>&...
+
+# Example
+http://docker-dev03.pcic.uvic.ca:30110/osprey/input/?case_id=sample&run_startdate=2011-12-01&...
+```
+
 ## Run Tests
 
 The automated tests can be run by executing the following command:
