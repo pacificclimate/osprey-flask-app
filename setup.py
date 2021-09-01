@@ -5,10 +5,7 @@
 
 from setuptools import setup
 
-__version__ = (1, 0, 0)
-
-reqs = [line.strip() for line in open("requirements.txt")]
-test_reqs = [line.strip() for line in open("test_requirements.txt")]
+__version__ = (0, 1, 0)
 
 classifiers = [
     "Development Status :: 3 - Alpha",

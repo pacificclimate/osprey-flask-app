@@ -1,15 +1,16 @@
-version: '1.0'
+version: '3.0'
+
 services:
-    osprey-flask-app:
-        build:
-            dockerfile: ./Dockerfile
-            image: pcic/osprey-flask-app:0.1.0
-            container_name: osprey-flask-app
-            ports: "30110:5000"
-            volumes:
-                - /storage/data/projects/hydrology/vic_gen2/input/routing:ro
-                - /storage/data/projects/hydrology/vic_gen2/output/projections_LE:ro
+  osprey-flask-app:
+    image: pcic/osprey-flask-app:i13
+    container_name: osprey-flask-app
+    ports:
+      - "30110:5000"
+    volumes:
+      - /storage/data/projects/hydrology/vic_gen2/input/routing:/storage/data/projects/hydrology/vic_gen2/input/routing:ro
+      - /storage/data/projects/hydrology/vic_gen2/input/routing:/storage/data/projects/hydrology/vic_gen2/output/projections_LE:ro
+
 networks:
-    default:
-        external:
-            name: pcicbr0
+  default:
+    external:
+      name: pcicbr0
