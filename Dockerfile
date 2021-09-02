@@ -3,7 +3,7 @@ FROM python:3.8-slim
 LABEL Maintainer="https://github.com/pacificclimate/osprey-flask-app" \
       Description="osprey-flask-app" \
       Vendor="pacificclimate" \
-      Version="0.1.0"
+      Version="0.2.0"
 
 COPY . /app
 WORKDIR /app

@@ -2,7 +2,7 @@ version: '3.0'
 
 services:
   osprey-flask-app:
-    image: pcic/osprey-flask-app:i13
+    image: pcic/osprey-flask-app:0.2.0
     container_name: osprey-flask-app
     ports:
       - "30110:5000"
