@@ -14,7 +14,7 @@ def get_base_urls():
     base_opendap_url = f"{url_prefix}/dodsC/{url_suffix}"
     http_routing_url = f"{base_http_url}/input/routing"  # Contains unit hydrograph file for Parameters process
     opendap_routing_url = f"{base_opendap_url}/input/routing"  # Contains input netCDF files for Parameters process
-    projections_url = f"{base_opendap_url}/output/projections_LE"  # Contains input netCDF files for Convolution process
+    projections_url = f"{base_opendap_url}/output/projections"  # Contains input netCDF files for Convolution process
     return (http_routing_url, opendap_routing_url, projections_url)
 
 
