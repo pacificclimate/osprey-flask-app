@@ -66,11 +66,12 @@ def check_region(
     domain = (
         f"{routing_url}/{region}/parameters/{domain_file}"  # CESM compliant domain file
     )
-    (lon_index, lat_index) = find_nearest(domain, lon, lat)
+    domain_dataset = netCDF4.Dataset(domain)
+    (lon_index, lat_index) = find_nearest(domain_dataset, lon, lat)
     if (lon_index, lat_index) == (-1, -1):
         return (None, None, None, None)
     frac = np.ma.getdata(
-        domain["frac"]
+        domain_dataset["frac"]
     )  # Values are either masked (outside region), < 1 (partially in region), or 1 (completely in region)
     pour_point_frac = frac[lat_index][lon_index]
     if not np.ma.getmask(pour_point_frac) and pour_point_frac == 1:
