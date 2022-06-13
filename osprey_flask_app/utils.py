@@ -14,7 +14,7 @@ def get_base_urls():
     base_opendap_url = f"{url_prefix}/dodsC/{url_suffix}"
     http_routing_url = f"{base_http_url}/input/routing"  # Contains unit hydrograph file for Parameters process
     opendap_routing_url = f"{base_opendap_url}/input/routing"  # Contains input netCDF files for Parameters process
-    projections_url = f"{base_opendap_url}/output/projections_LE"  # Contains input netCDF files for Convolution process
+    projections_url = f"{base_opendap_url}/output/projections"  # Contains input netCDF files for Convolution process
     return (http_routing_url, opendap_routing_url, projections_url)
 
 
@@ -66,11 +66,12 @@ def check_region(
     domain = (
         f"{routing_url}/{region}/parameters/{domain_file}"  # CESM compliant domain file
     )
-    (lon_index, lat_index) = find_nearest(domain, lon, lat)
+    domain_dataset = netCDF4.Dataset(domain)
+    (lon_index, lat_index) = find_nearest(domain_dataset, lon, lat)
     if (lon_index, lat_index) == (-1, -1):
         return (None, None, None, None)
     frac = np.ma.getdata(
-        domain["frac"]
+        domain_dataset["frac"]
     )  # Values are either masked (outside region), < 1 (partially in region), or 1 (completely in region)
     pour_point_frac = frac[lat_index][lon_index]
     if not np.ma.getmask(pour_point_frac) and pour_point_frac == 1:
