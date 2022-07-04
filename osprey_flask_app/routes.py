@@ -1,6 +1,6 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, Response, url_for
+from flask import Blueprint, request, Response, url_for, render_template
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict, inputs_are_valid
 
@@ -9,6 +9,7 @@ import requests
 import concurrent.futures
 import uuid
 import json
+import time
 
 osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
 pool = concurrent.futures.ThreadPoolExecutor(
@@ -68,6 +69,13 @@ def models_route():
     return Response(f"Available climate models:<br><br>{model_list}", status=201)
 
 
+"""
+@osprey.route('/')
+def index():
+    return render_template('index.html')
+"""
+
+
 @osprey.route("/status/<job_id>", methods=["GET"])
 def status_route(job_id):
     """Provide route to check status of RVIC process."""
@@ -77,7 +85,20 @@ def status_route(job_id):
         return Response("Process with this id does not exist.", status=201)
 
     if not job.done():
-        return Response("Process is still running.", status=201)
+
+        def generate():
+            x = 0
+
+            while x <= 100:
+                yield "data:" + str(x) + "\n\n"
+                x = x + 10
+                time.sleep(0.5)
+
+        # return Response(generate(), mimetype='text/event-stream', status=201)
+
+        response = Response(generate(), mimetype="text/event-stream", status=201)
+        return render_template("index.html", value=response, job_id=job_id)
+
     else:
         return Response(
             "Process completed. Get output: "
