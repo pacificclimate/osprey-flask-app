@@ -128,6 +128,7 @@ def get_input_files(arg_dict):
             if grid_id != None:
                 found_region = True
                 prev_grid_id = grid_id
+                new_arg_dict["case_id"] = region
                 new_arg_dict["grid_id"] = grid_id
                 new_arg_dict["routing"] = routing
                 new_arg_dict["domain"] = domain
