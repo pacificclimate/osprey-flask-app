@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "2cc3689c603057670cb4115e1d477612a0d274e3de8058dee132b71d49d23549"
+            "sha256": "a346c459af87bdf4eda059cc1de201bda5b9de81217dc1bc6a3b416f472f3457"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -833,6 +833,10 @@
             "version": "==5.4.0"
         },
         "nchelpers": {
+            "hashes": [
+                "sha256:4a04966a89a85a7741ccced8d6a8e66050b481d079a42198f42c1c1fa368923c",
+                "sha256:ac264c6329a3cfb146e4907599fc6837ca11fc83ae5915d06dbf47907e8c4e6e"
+            ],
             "version": "==5.5.7"
         },
         "nest-asyncio": {
@@ -1554,7 +1558,11 @@
             "version": "==3.6.1"
         },
         "wps-tools": {
-            "index": "pcic",
+            "hashes": [
+                "sha256:06c8e7215ded4938f99d5b541aa8ed8ed370aca0fc14af323e20471e4cdcec2b",
+                "sha256:5c81ebe43f78c97e1aaad7e6cf824f3a8bf00c45d44b0b6308fadc8efe569a2c"
+            ],
+            "index": "pypi",
             "version": "==1.3.1"
         },
         "wrapt": {
