@@ -18,11 +18,11 @@ birdhouse-birdy = "==0.8.0"
 wps-tools = "==1.3.1"
 ipython = "*"
 gunicorn = "*"
-ipywidgets = "7.7.1"
-ipydatetime = "1.1.0"
-ipyleaflet = "0.16.0"
-shapely = "1.8.2"
-jupyterlab = "3.4.3"
+ipywidgets = "==7.7.1"
+ipydatetime = "==1.2.0"
+ipyleaflet = "==0.16.0"
+shapely = "==1.8.2"
+jupyterlab = "==3.4.3"
 dask = {extras = [ "dataframe",]}
 
 [dev-packages]
