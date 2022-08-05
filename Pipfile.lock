@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9882619afb3b24b5fde8ac3f8d1db69a83928f237b8ffdd7108ca36c6779b35d"
+            "sha256": "ab34e43114a90ab25e26d5c79196f474f121623d981397581681ba9476cd5e65"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -514,14 +514,6 @@
             ],
             "markers": "python_version < '3.9'",
             "version": "==5.9.0"
-        },
-        "ipydatetime": {
-            "hashes": [
-                "sha256:9b083e08efef140c29091fe114ea2921f88989e56f0b5eecdde9ac0157bb0b10",
-                "sha256:cd2ed4f4350d17223eb44c50fc0f7e90995e5930f0d0442379b224caddb6087e"
-            ],
-            "index": "pypi",
-            "version": "==1.2.0"
         },
         "ipykernel": {
             "hashes": [
