@@ -49,6 +49,16 @@ http://127.0.0.1:5000/osprey/output/<id>
 http://127.0.0.1:5000/osprey/output/12345
 ```
 
+## Run Interactive Map
+
+To start the interactive map, run the following:
+
+```
+jupyter notebook
+```
+
+In jupyter notebook, open the `map.ipynb` file then run each cell until you reach the interactive map (cell #6). Select dates and pour points from the map, then start the process by running the cells below. At cell #8, wait for the `Process completed` message before running the rest of the cells. The resulting `NetCDF` file will be saved to your `Downloads` folder. 
+
 ## Docker
 
 To run the application using a docker container, run the following:
