@@ -1,6 +1,6 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, Response, url_for, render_template
+from flask import Blueprint, request, Response, url_for, send_file
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict, inputs_are_valid
 
@@ -69,11 +69,24 @@ def models_route():
     return Response(f"Available climate models:<br><br>{model_list}", status=201)
 
 
-"""
-@osprey.route('/')
+"""@osprey.route('/')
 def index():
-    return render_template('index.html')
+    return send_file('templates/index.html')
 """
+
+
+@osprey.route("/progress")
+def progress_route():
+    def generate():
+        x = 0
+
+        while x <= 100:
+            yield "data:" + str(x) + "\n\n"
+            x = x + 10
+            time.sleep(0.5)
+
+    response = Response(generate(), mimetype="text/event-stream")
+    return response
 
 
 @osprey.route("/status/<job_id>", methods=["GET"])
@@ -85,19 +98,7 @@ def status_route(job_id):
         return Response("Process with this id does not exist.", status=201)
 
     if not job.done():
-
-        def generate():
-            x = 0
-
-            while x <= 100:
-                yield "data:" + str(x) + "\n\n"
-                x = x + 10
-                time.sleep(0.5)
-
-        # return Response(generate(), mimetype='text/event-stream', status=201)
-
-        response = Response(generate(), mimetype="text/event-stream", status=201)
-        return render_template("index.html", value=response, job_id=job_id)
+        return send_file("templates/index.html")
 
     else:
         return Response(
