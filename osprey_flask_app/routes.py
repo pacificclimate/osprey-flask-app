@@ -14,12 +14,17 @@ import json
 import time
 import re
 
-osprey = Blueprint("osprey", __name__, url_prefix="/osprey", template_folder="templates")
+osprey = Blueprint(
+    "osprey", __name__, url_prefix="/osprey", template_folder="templates"
+)
 pool = concurrent.futures.ThreadPoolExecutor(
     max_workers=os.environ.get("MAX_WORKERS", 1)
 )
 jobs = {}  # Used to check if process is still executing and to return output
-dates = {} # Store start/end dates used for each job in order to access in progress route
+dates = (
+    {}
+)  # Store start/end dates used for each job in order to access in progress route
+
 
 @osprey.route(
     "/input",
@@ -80,11 +85,13 @@ def progress_route(job_id):
         try:
             with Client(address) as conn:
                 message = conn.recv_bytes().decode("utf-8")
-            timestamp = re.search(r'\d{4}-\d{2}-\d{2}', message)[0]
+            timestamp = re.search(r"\d{4}-\d{2}-\d{2}", message)[0]
             timestamp = datetime.strptime(timestamp, date_format)
             days_left = (end - timestamp).days
-            percent = 100 - int(days_left * 90 / total_days) # Start convolution progress at 10 percent
-        except ConnectionRefusedError: # Listener thread for convolution process has not been created. Still in parameters process.
+            percent = 100 - int(
+                days_left * 90 / total_days
+            )  # Start convolution progress at 10 percent
+        except ConnectionRefusedError:  # Listener thread for convolution process has not been created. Still in parameters process.
             percent = 9
             timestamp = ""
         return (percent, timestamp)
@@ -96,12 +103,18 @@ def progress_route(job_id):
         end = datetime.strptime(dates[job_id][1], stop_date_format)
         total_days = (end - start).days
 
-        (percent, timestamp) = get_percent_and_timestamp(stop_date_format, end, total_days)
+        (percent, timestamp) = get_percent_and_timestamp(
+            stop_date_format, end, total_days
+        )
         while percent <= 100:
             if percent >= 10:
                 timestamp = timestamp.strftime(stop_date_format)
-            yield 'data: {"percent": "' + str(percent) + '", "timestamp": "' + timestamp + '"}\n\n'
-            (percent, timestamp) = get_percent_and_timestamp(stop_date_format, end, total_days)
+            yield 'data: {"percent": "' + str(
+                percent
+            ) + '", "timestamp": "' + timestamp + '"}\n\n'
+            (percent, timestamp) = get_percent_and_timestamp(
+                stop_date_format, end, total_days
+            )
 
     response = Response(generate(), mimetype="text/event-stream")
     return response
