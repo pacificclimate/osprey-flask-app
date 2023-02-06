@@ -1,6 +1,6 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, Response, url_for, send_file
+from flask import Blueprint, request, Response, url_for, render_template
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict, inputs_are_valid
 from multiprocessing.connection import Client, Listener
@@ -116,7 +116,7 @@ def status_route(job_id):
         return Response("Process with this id does not exist.", status=201)
 
     if not job.done():
-        return send_file("templates/index.html")
+        return render_template("index.html", job_id=job_id)
 
     else:
         return Response(
