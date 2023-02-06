@@ -16,7 +16,7 @@ pool = concurrent.futures.ThreadPoolExecutor(
     max_workers=os.environ.get("MAX_WORKERS", 1)
 )
 jobs = {}  # Used to check if process is still executing and to return output
-
+dates = {} # Store start/end dates used for each job in order to access in progress route
 
 @osprey.route(
     "/input",
@@ -53,6 +53,7 @@ def input_route():
 
     job_id = str(uuid.uuid4())  # Generate unique id for tracking request
     jobs[job_id] = rvic_job
+    dates[job_id] = (arg_dict["run_startdate"], arg_dict["stop_date"])
     return Response(
         "RVIC Process started. Check status: "
         + url_for("osprey.status_route", job_id=job_id),
