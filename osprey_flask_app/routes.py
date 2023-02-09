@@ -57,7 +57,9 @@ def input_route():
     except Exception as e:
         return Response(str(e), status=400)
 
-    rvic_job = pool.submit(run_full_rvic, arg_dict)
+    rvic_job = pool.submit(
+        run_full_rvic, *[arg_dict, "http://docker-dev03.pcic.uvic.ca:30100"]
+    )
 
     job_id = str(uuid.uuid4())  # Generate unique id for tracking request
     jobs[job_id] = rvic_job
