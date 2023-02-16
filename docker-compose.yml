@@ -13,4 +13,4 @@ services:
 networks:
   default:
     external:
-      name: pcicbr0
+      name: osprey-flask-app-network
