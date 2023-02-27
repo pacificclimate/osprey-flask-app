@@ -11,7 +11,7 @@ __pycache__/
 .env
 .venv
 env/
-venv/
+venv*/
 ENV/
 osprey-flask-app-venv/
 env.bak/
