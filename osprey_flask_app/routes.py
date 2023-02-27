@@ -85,6 +85,9 @@ def models_route():
 
 @osprey.route("/progress/<job_id>")
 def progress_route(job_id):
+    """Provide route to generate percentage based on current day in convolution process and start/end days.
+    As this involves connecting to a Listener, it uses blocking I/O."""
+
     def get_percent_and_timestamp(date_format, end, total_days):
         address = (
             os.environ.get("LISTENER_HOST", "osprey"),
