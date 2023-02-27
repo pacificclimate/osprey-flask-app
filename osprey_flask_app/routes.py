@@ -5,6 +5,7 @@ from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict, inputs_are_valid
 from multiprocessing.connection import Client, Listener
 from datetime import datetime
+from wps_tools.testing import get_target_url
 
 import os
 import requests
@@ -58,7 +59,8 @@ def input_route():
         return Response(str(e), status=400)
 
     rvic_job = pool.submit(
-        run_full_rvic, *[arg_dict, "http://docker-dev03.pcic.uvic.ca:30100"]
+        run_full_rvic,
+        *[arg_dict, os.environ.get("OSPREY_URL", get_target_url("osprey"))],
     )
 
     job_id = str(uuid.uuid4())  # Generate unique id for tracking request
@@ -83,7 +85,10 @@ def models_route():
 @osprey.route("/progress/<job_id>")
 def progress_route(job_id):
     def get_percent_and_timestamp(date_format, end, total_days):
-        address = ("osprey-dev", os.environ.get("LISTENER_PORT", 5005))
+        address = (
+            os.environ.get("LISTENER_HOST", "osprey"),
+            os.environ.get("LISTENER_PORT", 5005),
+        )
         try:
             with Client(address) as conn:
                 message = conn.recv_bytes().decode("utf-8")

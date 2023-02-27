@@ -1,8 +1,7 @@
 from birdy import WPSClient
-from wps_tools.testing import get_target_url
 
 
-def run_full_rvic(arg_dict, url=get_target_url("osprey")):
+def run_full_rvic(arg_dict, url):
     osprey = WPSClient(url)
     output_full = osprey.full_rvic(
         case_id=arg_dict["case_id"],
