@@ -66,9 +66,10 @@ def input_route():
     job_id = str(uuid.uuid4())  # Generate unique id for tracking request
     jobs[job_id] = rvic_job
     dates[job_id] = (arg_dict["run_startdate"], arg_dict["stop_date"])
+    status_url = url_for("osprey.status_route", job_id=job_id)
     return Response(
-        "RVIC Process started. Check status: "
-        + url_for("osprey.status_route", job_id=job_id),
+        "RVIC Process started. Check status: " + status_url,
+        headers={"Location": status_url},
         status=202,
     )
 
