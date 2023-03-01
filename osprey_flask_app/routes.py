@@ -91,7 +91,7 @@ def progress_route(job_id):
     def get_percent_and_timestamp(date_format, end, total_days):
         address = (
             os.environ.get("LISTENER_HOST", "osprey"),
-            os.environ.get("LISTENER_PORT", 5005),
+            int(os.environ.get("LISTENER_PORT", 5005)),
         )
         try:
             with Client(address) as conn:
@@ -157,9 +157,6 @@ def output_route(job_id):
         job = jobs[job_id]
     except KeyError:
         return Response("Process with this id does not exist.", status=404)
-
-    # Remove id from dictionary of executing jobs
-    jobs.pop(job_id)
 
     job_exception = job.exception()
     if job_exception is not None:
