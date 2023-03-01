@@ -1,20 +1,30 @@
 """Defines all routes available to Flask app"""
 
-from flask import Blueprint, request, Response, url_for
+from flask import Blueprint, request, Response, url_for, render_template
 from .run_rvic import run_full_rvic
 from .utils import create_full_arg_dict, inputs_are_valid
+from multiprocessing.connection import Client, Listener
+from datetime import datetime
+from wps_tools.testing import get_target_url
 
 import os
 import requests
 import concurrent.futures
 import uuid
 import json
+import time
+import re
 
-osprey = Blueprint("osprey", __name__, url_prefix="/osprey")
+osprey = Blueprint(
+    "osprey", __name__, url_prefix="/osprey", template_folder="templates"
+)
 pool = concurrent.futures.ThreadPoolExecutor(
     max_workers=os.environ.get("MAX_WORKERS", 1)
 )
 jobs = {}  # Used to check if process is still executing and to return output
+dates = (
+    {}
+)  # Store start/end dates used for each job in order to access in progress route
 
 
 @osprey.route(
@@ -48,13 +58,18 @@ def input_route():
     except Exception as e:
         return Response(str(e), status=400)
 
-    rvic_job = pool.submit(run_full_rvic, arg_dict)
+    rvic_job = pool.submit(
+        run_full_rvic,
+        *[arg_dict, os.environ.get("OSPREY_URL", get_target_url("osprey"))],
+    )
 
     job_id = str(uuid.uuid4())  # Generate unique id for tracking request
     jobs[job_id] = rvic_job
+    dates[job_id] = (arg_dict["run_startdate"], arg_dict["stop_date"])
+    status_url = url_for("osprey.status_route", job_id=job_id)
     return Response(
-        "RVIC Process started. Check status: "
-        + url_for("osprey.status_route", job_id=job_id),
+        "RVIC Process started. Check status: " + status_url,
+        headers={"Location": status_url},
         status=202,
     )
 
@@ -68,6 +83,58 @@ def models_route():
     return Response(f"Available climate models:<br><br>{model_list}", status=201)
 
 
+@osprey.route("/progress/<job_id>")
+def progress_route(job_id):
+    """Provide route to generate percentage based on current day in convolution process and start/end days.
+    As this involves connecting to a Listener, it uses blocking I/O."""
+
+    def get_percent_and_timestamp(date_format, end, total_days):
+        address = (
+            os.environ.get("LISTENER_HOST", "osprey"),
+            int(os.environ.get("LISTENER_PORT", 5005)),
+        )
+        try:
+            with Client(address) as conn:
+                message = conn.recv_bytes().decode("utf-8")
+            timestamp = re.search(r"\d{4}-\d{2}-\d{2}", message)[0]
+            timestamp = datetime.strptime(timestamp, date_format)
+            days_left = (end - timestamp).days
+            percent = 100 - int(
+                days_left * 90 / total_days
+            )  # Start convolution progress at 10 percent
+        except ConnectionRefusedError:  # Listener thread for convolution process has not been created. Still in parameters process.
+            percent = 9
+            timestamp = ""
+        except EOFError:  # No further timestamps to receive from Listener. Convolution process has completed.
+            percent = 100
+            timestamp = end
+
+        return (percent, timestamp)
+
+    def generate():
+        start_date_format = "%Y-%m-%d-%H"
+        stop_date_format = "%Y-%m-%d"
+        start = datetime.strptime(dates[job_id][0], start_date_format)
+        end = datetime.strptime(dates[job_id][1], stop_date_format)
+        total_days = (end - start).days
+
+        (percent, timestamp) = get_percent_and_timestamp(
+            stop_date_format, end, total_days
+        )
+        while percent <= 100:
+            if percent >= 10:
+                timestamp = timestamp.strftime(stop_date_format)
+            yield 'data: {"percent": "' + str(
+                percent
+            ) + '", "timestamp": "' + timestamp + '"}\n\n'
+            (percent, timestamp) = get_percent_and_timestamp(
+                stop_date_format, end, total_days
+            )
+
+    response = Response(generate(), mimetype="text/event-stream")
+    return response
+
+
 @osprey.route("/status/<job_id>", methods=["GET"])
 def status_route(job_id):
     """Provide route to check status of RVIC process."""
@@ -77,7 +144,8 @@ def status_route(job_id):
         return Response("Process with this id does not exist.", status=201)
 
     if not job.done():
-        return Response("Process is still running.", status=201)
+        return render_template("index.html", job_id=job_id)
+
     else:
         return Response(
             "Process completed. Get output: "
@@ -93,9 +161,6 @@ def output_route(job_id):
         job = jobs[job_id]
     except KeyError:
         return Response("Process with this id does not exist.", status=404)
-
-    # Remove id from dictionary of executing jobs
-    jobs.pop(job_id)
 
     job_exception = job.exception()
     if job_exception is not None:

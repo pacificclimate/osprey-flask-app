@@ -1,0 +1,20 @@
+version: '3.0'
+
+services:
+  osprey-flask-app:
+    image: pcic/osprey-flask-app:0.2.0
+    container_name: osprey-flask-app
+    environment:
+      - LISTENER_HOST=osprey
+      - LISTENER_PORT=5005
+      - OSPREY_URL=https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/osprey/wps
+    ports:
+      - "30110:5000"
+    volumes:
+      - /storage/data/projects/hydrology/vic_gen2/input/routing:/storage/data/projects/hydrology/vic_gen2/input/routing:ro
+      - /storage/data/projects/hydrology/vic_gen2/output/projections:/storage/data/projects/hydrology/vic_gen2/output/projections:ro
+
+networks:
+  default:
+    external:
+      name: pcicbr1
