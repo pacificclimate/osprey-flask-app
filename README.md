@@ -77,3 +77,8 @@ The automated tests can be run by executing the following command:
 ```
 pytest
 ```
+
+Note that the automated tests use [selenium](https://pypi.org/project/selenium/) to monitor the status route of the currently running RVIC test. In particular, it is used to obtain the values of the progress bar header text and the percentage from the html template. In order to use selenium with Firefox on Linux, the following steps must be performed:
+  1. Download `geckodriver` from https://github.com/mozilla/geckodriver/releases.
+  2. Open the .gz file and extract `geckodriver`.
+  3. Move `geckodriver` to `/usr/local/bin/`.

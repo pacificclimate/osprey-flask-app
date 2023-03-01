@@ -16,3 +16,6 @@ ENV/
 osprey-flask-app-venv/
 env.bak/
 venv.bak/
+
+# Selenium webdriver log
+geckodriver.log

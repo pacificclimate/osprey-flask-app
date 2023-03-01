@@ -1,49 +1,62 @@
 import pytest
 
-from osprey_flask_app import create_app
 from pkg_resources import resource_filename
+import re
 import os
 import time
 import requests
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from urllib.parse import urlencode
 
 
-@pytest.fixture
-def client():
-    flask_app = create_app()
-
-    # Create a test client using the Flask application configured for testing
-    with flask_app.test_client() as testing_client:
-        # Establish an application context
-        with flask_app.app_context():
-            yield testing_client
-
-
-def full_rvic_test(kwargs, client, valid_input=True):
+def full_rvic_test(kwargs, valid_input=True):
+    port = os.environ.get("APP_PORT", 5000)
+    base_url = (
+        f"http://localhost:{port}"  # Requires running instance of app on a terminal
+    )
     input_params = urlencode(kwargs)
-    input_url = f"/osprey/input?{input_params}"
-    input_response = client.get(input_url)
+    input_url = base_url + f"/osprey/input?{input_params}"
+    input_response = requests.get(input_url)
     if valid_input:
         assert input_response.status_code == 202
     else:
         assert input_response.status_code == 400
         return
 
-    status_url = input_response.data.split()[-1].decode("utf-8")
-    status_response = client.get(status_url)
-
-    timeout = 1800  # Time to timeout in seconds
+    status_url = base_url + input_response.content.split()[-1].decode("utf-8")
+    options = webdriver.FirefoxOptions()
+    options.add_argument("--headless")
+    driver = webdriver.Firefox(options=options)
+    driver.get(status_url)
+    timeout = 60  # Time to timeout in seconds
     for i in range(timeout):
-        if status_response.data != b"Process is still running.":  # Process is completed
+        try:
+            progress_header_text = driver.find_element(
+                By.CLASS_NAME, "progress-bar-header"
+            ).text
+            progress_label_text = driver.find_element(
+                By.CLASS_NAME, "progress-bar-label"
+            ).text
+            percent = int(progress_label_text.split("%")[0])
+            if progress_header_text == "Start RVIC run":
+                assert percent == 0
+            elif progress_header_text == "In parameters process.":
+                assert percent == 9
+            else:  # In convolution process
+                assert "In convolution process." in progress_header_text
+                assert percent >= 10
+            time.sleep(1)
+        except NoSuchElementException:
             break
-        time.sleep(1)
-        status_response = client.get(status_url)
-    assert b"Process completed." in status_response.data
+    completed_text = driver.find_element(By.TAG_NAME, "body").text
+    assert "Process completed." in completed_text
 
-    output_url = status_response.data.split()[-1].decode("utf-8")
-    output_response = client.get(output_url)
-    streamflow_path = output_response.headers.get("Location")
-    assert requests.get(streamflow_path).status_code == 200
+    output_url = base_url + completed_text.split()[-1]
+    output_response = requests.get(output_url)
+    assert output_response.status_code == 200
+    driver.quit()
 
 
 @pytest.mark.online
@@ -104,8 +117,8 @@ def full_rvic_test(kwargs, client, valid_input=True):
         ),
     ],
 )
-def test_run_full_rvic_online_valid(kwargs, client):
-    full_rvic_test(kwargs, client, valid_input=True)
+def test_run_full_rvic_online_valid(kwargs):
+    full_rvic_test(kwargs, valid_input=True)
 
 
 @pytest.mark.online
@@ -144,8 +157,8 @@ def test_run_full_rvic_online_valid(kwargs, client):
         ),
     ],
 )
-def test_run_full_rvic_multiple_points(kwargs, client):
-    full_rvic_test(kwargs, client, valid_input=True)
+def test_run_full_rvic_multiple_points(kwargs):
+    full_rvic_test(kwargs, valid_input=True)
 
 
 @pytest.mark.online
@@ -225,8 +238,8 @@ def test_run_full_rvic_multiple_points(kwargs, client):
         ),
     ],
 )
-def test_run_full_rvic_online_invalid(kwargs, client):
-    full_rvic_test(kwargs, client, valid_input=False)
+def test_run_full_rvic_online_invalid(kwargs):
+    full_rvic_test(kwargs, valid_input=False)
 
 
 @pytest.mark.parametrize(
