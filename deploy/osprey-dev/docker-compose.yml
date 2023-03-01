@@ -3,13 +3,13 @@ version: '3.0'
 services:
   osprey-flask-app:
     image: pcic/osprey-flask-app:0.2.0
-    container_name: osprey-flask-app
+    container_name: osprey-flask-app-dev
     environment:
       - LISTENER_HOST=osprey-dev
       - LISTENER_PORT=5005
       - OSPREY_URL=http://docker-dev03.pcic.uvic.ca:30100
     ports:
-      - "30110:5000"
+      - "30111:5000"
     volumes:
       - /storage/data/projects/hydrology/vic_gen2/input/routing:/storage/data/projects/hydrology/vic_gen2/input/routing:ro
       - /storage/data/projects/hydrology/vic_gen2/output/projections:/storage/data/projects/hydrology/vic_gen2/output/projections:ro
