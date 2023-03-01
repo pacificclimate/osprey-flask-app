@@ -105,6 +105,10 @@ def progress_route(job_id):
         except ConnectionRefusedError:  # Listener thread for convolution process has not been created. Still in parameters process.
             percent = 9
             timestamp = ""
+        except EOFError:  # No further timestamps to receive from Listener. Convolution process has completed.
+            percent = 100
+            timestamp = end
+
         return (percent, timestamp)
 
     def generate():
