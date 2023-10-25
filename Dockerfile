@@ -8,7 +8,7 @@ LABEL Maintainer="https://github.com/pacificclimate/osprey-flask-app" \
 COPY . /app
 WORKDIR /app
 
-RUN pip install -U pipenv && \
+RUN pip install pipenv==2022.1.8 && \
     pipenv install --dev
 
 EXPOSE 5000
