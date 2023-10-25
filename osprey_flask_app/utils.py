@@ -112,7 +112,7 @@ def get_input_files(arg_dict):
     domains = json.load(open("domains.json"))
     nc_files = domains["nc_files"]
     prev_grid_id = None  # Used to check that all pour points are in the same domain
-    for (lon, lat) in zip(lons, lats):
+    for lon, lat in zip(lons, lats):
         found_region = False
         for region in nc_files.keys():
             (grid_id, routing, domain, input_forcings) = check_region(
@@ -128,6 +128,7 @@ def get_input_files(arg_dict):
             if grid_id != None:
                 found_region = True
                 prev_grid_id = grid_id
+                new_arg_dict["case_id"] = region
                 new_arg_dict["grid_id"] = grid_id
                 new_arg_dict["routing"] = routing
                 new_arg_dict["domain"] = domain
@@ -191,7 +192,7 @@ def create_full_arg_dict(args):
         "np": 1,
     }
     arg_dict = dict(args)
-    for (arg, default) in opt_args.items():
+    for arg, default in opt_args.items():
         if arg not in arg_dict:
             arg_dict[arg] = default
 

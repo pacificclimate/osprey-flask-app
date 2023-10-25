@@ -94,9 +94,6 @@ def output_route(job_id):
     except KeyError:
         return Response("Process with this id does not exist.", status=404)
 
-    # Remove id from dictionary of executing jobs
-    jobs.pop(job_id)
-
     job_exception = job.exception()
     if job_exception is not None:
         return Response(f"Process has failed. {job_exception}", status=404)

@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.10-slim
 
 LABEL Maintainer="https://github.com/pacificclimate/osprey-flask-app" \
       Description="osprey-flask-app" \
@@ -8,7 +8,7 @@ LABEL Maintainer="https://github.com/pacificclimate/osprey-flask-app" \
 COPY . /app
 WORKDIR /app
 
-RUN pip install -U pipenv && \
+RUN pip install pipenv==2022.1.8 && \
     pipenv install --dev
 
 EXPOSE 5000
