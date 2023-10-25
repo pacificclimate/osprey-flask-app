@@ -27,7 +27,7 @@ dask = {extras = [ "dataframe",]}
 [dev-packages]
 black = "==23.10.1"
 pyflakes = "==2.3.1"
-pytest = "==6.2.2"
+pytest = "==6.2.5"
 pytest-cov = "==2.11.1"
 
 [requires]
