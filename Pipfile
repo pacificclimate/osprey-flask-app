@@ -9,7 +9,7 @@ verify_ssl = true
 name = "pcic"
 
 [packages]
-click = "==7.1.2"
+click = "==8.1.2"
 Flask = "==2.0.0"
 werkzeug = "==2.0.3"
 netCDF4 = "*"
@@ -25,7 +25,7 @@ jupyterlab = "==3.4.3"
 dask = {extras = [ "dataframe",]}
 
 [dev-packages]
-black = "==20.8b1"
+black = "==23.10.1"
 pyflakes = "==2.3.1"
 pytest = "==6.2.2"
 pytest-cov = "==2.11.1"
