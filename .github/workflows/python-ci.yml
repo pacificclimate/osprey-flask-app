@@ -8,7 +8,10 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version:
+          - "3.8"
+          - "3.9"
+          - "3.10"
 
     steps:
     - uses: actions/checkout@v2
@@ -28,11 +31,11 @@ jobs:
         key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
 
     - name: Install dependencies if changed
-      if: steps.cache-pipenv.outputs.cache-hit != 'true' && ${{ matrix.python-version == '3.8' }}
+      if: $${{ steps.cache-pipenv.outputs.cache-hit != 'true' && matrix.python-version == '3.10' }}
       run: |
         pipenv install --deploy --dev
     - name: Re-install dependencies if alternative python version
-      if: ${{ matrix.python-version != '3.8' }}
+      if: ${{ matrix.python-version != '3.10' }}
       run: |
         mv Pipfile.lock do-not-use
         pipenv install --python ${{ matrix.python-version }} --dev
