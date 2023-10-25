@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.10-slim
 
 LABEL Maintainer="https://github.com/pacificclimate/osprey-flask-app" \
       Description="osprey-flask-app" \
