@@ -13,4 +13,4 @@ jobs:
       - uses: psf/black@stable
         with:
           black_args: ". --check"
-          version: "22.3.0"
+          version: "23.10.1"

@@ -102,10 +102,14 @@ def progress_route(job_id):
             percent = 100 - int(
                 days_left * 90 / total_days
             )  # Start convolution progress at 10 percent
-        except ConnectionRefusedError:  # Listener thread for convolution process has not been created. Still in parameters process.
+        except (
+            ConnectionRefusedError
+        ):  # Listener thread for convolution process has not been created. Still in parameters process.
             percent = 9
             timestamp = ""
-        except EOFError:  # No further timestamps to receive from Listener. Convolution process has completed.
+        except (
+            EOFError
+        ):  # No further timestamps to receive from Listener. Convolution process has completed.
             percent = 100
             timestamp = end
 
