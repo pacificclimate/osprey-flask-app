@@ -1,6 +1,7 @@
 from birdy import WPSClient
 import time
 
+
 def run_full_rvic(arg_dict, url, listener_port):
     osprey = WPSClient(url)
     output_full = osprey.full_rvic(

@@ -25,7 +25,8 @@ jobs = {}  # Used to check if process is still executing and to return output
 dates = (
     {}
 )  # Store start/end dates used for each job in order to access in progress route
-ports = ({}) # Store ports used for Listener in each job
+ports = {}  # Store ports used for Listener in each job
+
 
 def get_available_port():
     port = 5005
@@ -36,6 +37,7 @@ def get_available_port():
         else:
             break
     return port
+
 
 @osprey.route(
     "/input",
@@ -71,7 +73,11 @@ def input_route():
     listener_port = get_available_port()
     rvic_job = pool.submit(
         run_full_rvic,
-        *[arg_dict, os.environ.get("OSPREY_URL", get_target_url("osprey")), listener_port],
+        *[
+            arg_dict,
+            os.environ.get("OSPREY_URL", get_target_url("osprey")),
+            listener_port,
+        ],
     )
 
     job_id = str(uuid.uuid4())  # Generate unique id for tracking request
@@ -185,8 +191,10 @@ def output_route(job_id):
 
     if not job.done():
         status_url = url_for("osprey.status_route", job_id=job_id)
-        return Response(f"Process is not done. Please check {status_url} for progress.", status=302)
-    
+        return Response(
+            f"Process is not done. Please check {status_url} for progress.", status=302
+        )
+
     try:
         outpath = job.result()
         outpath_response = requests.get(outpath)

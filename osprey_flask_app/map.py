@@ -72,9 +72,10 @@ def handle_click(**kwargs):
             )
 
 
-#base_url = "http://docker-dev03.pcic.uvic.ca:30113"
+# base_url = "http://docker-dev03.pcic.uvic.ca:30113"
 base_url = "http://localhost:5001"
 output_widget = Output()
+
 
 @output_widget.capture()
 def handle_run(arg):
@@ -88,9 +89,7 @@ def handle_run(arg):
     if valid:
         # Start RVIC process
         url = build_url(start_date.value, end_date.value, points, model.value)
-        input_response = requests.get(
-            f"{base_url}/osprey/input?{url}"
-        ).content
+        input_response = requests.get(f"{base_url}/osprey/input?{url}").content
         print(input_response.decode("utf-8"))
 
         # Check status of RVIC process
@@ -112,7 +111,7 @@ def handle_run(arg):
         outputs.append(output_url)
 
 
-#def handle_run(arg):
+# def handle_run(arg):
 #    t = threading.Thread(target=handle_run_thread)
 #    t.start()
 
