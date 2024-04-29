@@ -1,7 +1,7 @@
 from birdy import WPSClient
+import time
 
-
-def run_full_rvic(arg_dict, url):
+def run_full_rvic(arg_dict, url, listener_port):
     osprey = WPSClient(url)
     output_full = osprey.full_rvic(
         case_id=arg_dict["case_id"],
@@ -17,6 +17,6 @@ def run_full_rvic(arg_dict, url):
         np=arg_dict["np"],
         params_config_dict=arg_dict["params_config_dict"],
         convolve_config_dict=arg_dict["convolve_config_dict"],
+        listener_port=listener_port,
     )
-
     return output_full.get()[0]

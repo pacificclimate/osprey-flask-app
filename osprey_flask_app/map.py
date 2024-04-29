@@ -3,6 +3,8 @@ import requests
 import threading
 import json
 import time
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 from ipywidgets import *
 from ipyleaflet import *
@@ -70,9 +72,9 @@ def handle_click(**kwargs):
             )
 
 
-base_url = "http://docker-dev03.pcic.uvic.ca:30113"
+#base_url = "http://docker-dev03.pcic.uvic.ca:30113"
+base_url = "http://localhost:5001"
 output_widget = Output()
-
 
 @output_widget.capture()
 def handle_run(arg):
@@ -86,9 +88,8 @@ def handle_run(arg):
     if valid:
         # Start RVIC process
         url = build_url(start_date.value, end_date.value, points, model.value)
-        print(url)
         input_response = requests.get(
-            f"{base_url}/osprey/input?case_id=sample&{url}"
+            f"{base_url}/osprey/input?{url}"
         ).content
         print(input_response.decode("utf-8"))
 
@@ -111,9 +112,9 @@ def handle_run(arg):
         outputs.append(output_url)
 
 
-# def handle_run(arg):
+#def handle_run(arg):
 #    t = threading.Thread(target=handle_run_thread)
-#    t.run()
+#    t.start()
 
 
 def handle_add(arg):
@@ -169,8 +170,8 @@ def in_polygon(lat, lon):
         return None
 
 
-def date_widget(descr):
-    return DatePicker(description=descr, disabled=False)
+def date_widget(descr, value):
+    return DatePicker(description=descr, disabled=False, value=value)
 
 
 def get_models():
@@ -269,8 +270,9 @@ remove_point = Button(
 )
 remove_point.on_click(handle_remove)
 
-start_date = date_widget("Start Date:")
-end_date = date_widget("End Date:")
+curr_date = date.today()
+start_date = date_widget("Start Date:", value=curr_date)
+end_date = date_widget("End Date:", value=curr_date + relativedelta(months=1))
 
 model = Dropdown(options=get_models(), description="Model", disabled=False)
 

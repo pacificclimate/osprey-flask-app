@@ -25,7 +25,17 @@ jobs = {}  # Used to check if process is still executing and to return output
 dates = (
     {}
 )  # Store start/end dates used for each job in order to access in progress route
+ports = ({}) # Store ports used for Listener in each job
 
+def get_available_port():
+    port = 5005
+    while port in ports.values():
+        job_id = list(ports.keys())[list(ports.values()).index(port)]
+        if not jobs[job_id].done():
+            port += 1
+        else:
+            break
+    return port
 
 @osprey.route(
     "/input",
@@ -48,7 +58,7 @@ def input_route():
         11. params_config_dict (str): Dictionary containing input configuration for Parameters process.
         12. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
 
-    Example url: http://127.0.0.1:5001/osprey/input?case_id=sample&run_startdate=2012-12-01-00&stop_date=2012-12-31&lons=-116.46875&lats=50.90625&names=BCHSP&params_config_dict={"OPTIONS": {"LOG_LEVEL": "CRITICAL"}}&convolve_config_dict={"OPTIONS": {"CASESTR": "Historical"}}
+    Example url: http://127.0.0.1:5001/osprey/input?run_startdate=2012-12-01-00&stop_date=2012-12-31&lons=-116.46875&lats=50.90625&names=BCHSP&params_config_dict={"OPTIONS": {"LOG_LEVEL": "CRITICAL"}}&convolve_config_dict={"OPTIONS": {"CASESTR": "Historical"}}
     Returns output netCDF file after Convolution process.
     """
     args = request.args
@@ -58,14 +68,16 @@ def input_route():
     except Exception as e:
         return Response(str(e), status=400)
 
+    listener_port = get_available_port()
     rvic_job = pool.submit(
         run_full_rvic,
-        *[arg_dict, os.environ.get("OSPREY_URL", get_target_url("osprey"))],
+        *[arg_dict, os.environ.get("OSPREY_URL", get_target_url("osprey")), listener_port],
     )
 
     job_id = str(uuid.uuid4())  # Generate unique id for tracking request
     jobs[job_id] = rvic_job
     dates[job_id] = (arg_dict["run_startdate"], arg_dict["stop_date"])
+    ports[job_id] = listener_port
     status_url = url_for("osprey.status_route", job_id=job_id)
     return Response(
         "RVIC Process started. Check status: " + status_url,
@@ -91,7 +103,7 @@ def progress_route(job_id):
     def get_percent_and_timestamp(date_format, end, total_days):
         address = (
             os.environ.get("LISTENER_HOST", "osprey"),
-            int(os.environ.get("LISTENER_PORT", 5005)),
+            ports[job_id],
         )
         try:
             with Client(address) as conn:
@@ -151,6 +163,7 @@ def status_route(job_id):
         return render_template("index.html", job_id=job_id)
 
     else:
+        ports.pop(job_id)
         return Response(
             "Process completed. Get output: "
             + url_for("osprey.output_route", job_id=job_id),
@@ -170,6 +183,10 @@ def output_route(job_id):
     if job_exception is not None:
         return Response(f"Process has failed. {job_exception}", status=404)
 
+    if not job.done():
+        status_url = url_for("osprey.status_route", job_id=job_id)
+        return Response(f"Process is not done. Please check {status_url} for progress.", status=302)
+    
     try:
         outpath = job.result()
         outpath_response = requests.get(outpath)
