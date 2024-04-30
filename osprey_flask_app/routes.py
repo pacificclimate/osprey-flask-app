@@ -19,7 +19,7 @@ osprey = Blueprint(
     "osprey", __name__, url_prefix="/osprey", template_folder="templates"
 )
 pool = concurrent.futures.ThreadPoolExecutor(
-    max_workers=os.environ.get("MAX_WORKERS", 1)
+    max_workers=int(os.environ.get("MAX_WORKERS", 1))
 )
 jobs = {}  # Used to check if process is still executing and to return output
 dates = (
