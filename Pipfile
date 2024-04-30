@@ -16,7 +16,7 @@ netCDF4 = "*"
 xarray = "==0.16.2"
 birdhouse-birdy = "==0.8.0"
 ipython = "*"
-gunicorn = "*"
+gunicorn = {extras = ["gthread"]}
 gevent = "*"
 ipywidgets = "==7.7.2"
 ipyleaflet = "==0.16.0"
