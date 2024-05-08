@@ -1,7 +1,7 @@
 # osprey-flask-app
 
 This application is a flask microservice to interact with PCIC's [osprey](https://github.com/pacificclimate/osprey#readme) bird, which runs the RVIC streamflow package as a WPS process. The purpose of this app is to make it so that a user does not have to provide the filepath inputs required for RVIC, and it also provides an asynchronous response so that the user can obtain feedback on the status of the process request. This is particularly important due to RVIC's long (~20-30 min) runtime. The app runs asynchronously by submitting a new job into a pool after
-a request is submitted. The maximum number of workers running each job, given by `MAX_WORKERS`, has a default value of 1, but it should be set as an environment variable by the developer deploying the service.
+a request is submitted. The maximum number of parallel jobs using this pool, given by `MAX_WORKERS`, has a default value of 1, but it should be set as an environment variable by the developer deploying the service.
 
 ## Installation
 We can use `make` to handle the installation process and to initialize the environment variables needed for the app to run. Copy and paste this section into your terminal:
@@ -25,10 +25,10 @@ The app is then used by inputting the parameters required for `osprey` in the ur
 
 ```
 # Generic example
-http://127.0.0.1:5000/osprey/input/?case_id=<case_id>&run_startdate=<run_startdate>&...
+http://127.0.0.1:5000/osprey/input/?run_startdate=<run_startdate>&...
 
 # Example
-http://127.0.0.1:5000/osprey/input/?case_id=sample&run_startdate=2011-12-01&...
+http://127.0.0.1:5000/osprey/input/?run_startdate=2011-12-01&...
 ```
 This causes the app to run the [full_rvic](https://github.com/pacificclimate/osprey/blob/master/osprey/processes/wps_full_rvic.py) process asynchronously and returns a [status](https://github.com/pacificclimate/osprey-flask-app/blob/a05e0b3fe61152f40b795eb0069d1678f32d01b8/osprey_flask_app/routes.py#L93) url that can be used to check if the process is still running or is completed.
 
@@ -51,13 +51,13 @@ http://127.0.0.1:5000/osprey/output/12345
 
 ## Run Interactive Map
 
-To start the interactive map, run the following:
+To start the interactive map, run the following (you can also use `lab` instead of `notebook`):
 
 ```
 jupyter notebook
 ```
 
-In jupyter notebook, open  `osprey_flask_app/map.ipynb` then run each cell until you reach the interactive map (cell #6). Select dates and pour points from the map, then start the process by running the cells below. At cell #8, wait for the `Process completed` message before running the rest of the cells. The resulting `NetCDF` file will be saved to your `Downloads` folder. 
+In jupyter notebook, open  `osprey_flask_app/map.ipynb` then the first two cells to load the interactive map. Select dates and pour points from the map, then start the process by clicking the `Run` button. This returns a status URL which can be opened in a new tab to monitor the progress of the process. Wait for the status page to display the `Process completed` message before running the rest of the cells. The resulting `NetCDF` file will be saved to your `Downloads` folder. 
 
 ## Docker
 
@@ -75,10 +75,10 @@ The urls will look similar to the aforementioned examples with a different prefi
 
 ```
 # Generic example
-http://docker-dev03.pcic.uvic.ca:30110/osprey/input/?case_id=<case_id>&run_startdate=<run_startdate>&...
+http://docker-dev03.pcic.uvic.ca:30110/osprey/input/?run_startdate=<run_startdate>&...
 
 # Example
-http://docker-dev03.pcic.uvic.ca:30110/osprey/input/?case_id=sample&run_startdate=2011-12-01&...
+http://docker-dev03.pcic.uvic.ca:30110/osprey/input/?run_startdate=2011-12-01&...
 ```
 
 ## Run Tests
