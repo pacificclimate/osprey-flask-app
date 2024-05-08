@@ -11,8 +11,3 @@ services:
     volumes:
       - /storage/data/projects/hydrology/vic_gen2/input/routing:/storage/data/projects/hydrology/vic_gen2/input/routing:ro
       - /storage/data/projects/hydrology/vic_gen2/output/projections:/storage/data/projects/hydrology/vic_gen2/output/projections:ro
-
-networks:
-  default:
-    external:
-      name: pcicbr1
