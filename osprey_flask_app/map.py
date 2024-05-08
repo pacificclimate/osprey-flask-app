@@ -3,6 +3,7 @@ import requests
 import threading
 import json
 import time
+import os
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
@@ -29,7 +30,6 @@ columbia_coords = [
 
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
-driver = webdriver.Firefox(options=options)
 
 
 def handle_click(**kwargs):
@@ -72,48 +72,57 @@ def handle_click(**kwargs):
             )
 
 
-# base_url = "http://docker-dev03.pcic.uvic.ca:30113"
-base_url = "http://localhost:5001"
-output_widget = Output()
+def handle_run_thread():
+    driver = webdriver.Firefox(options=options)
+    output_widget = Output()
+    display(output_widget)
+    with output_widget:
+        valid = True
+        if not point_list.options:
+            print("Please add at least one point before continuing")
+            valid = False
+        if not start_date.value and not end_date.value:
+            print("Please enter a start and end date before continuing")
+            valid = False
+        if valid:
+            # Start RVIC process
+            base_url = os.environ.get(
+                "APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30113"
+            )
+            url = build_url(start_date.value, end_date.value, points, model.value)
+            input_response = requests.get(f"{base_url}/osprey/input?{url}").content
+            print(input_response.decode("utf-8"))
+
+            # Check status of RVIC process
+            status_url = input_response.split()[-1].decode("utf-8")
+            driver.get(status_url)
+
+            """TODO: This while loop is supposed to render the progress bar for each request
+            below the interactive map; however, for some reason, nothing gets displayed. Currently,
+            users can click on the displayed status URL to view the progress bar in a separate tab. Modify
+            this loop or possibly other parts of the function to ensure progress bars get displayed.
+            """
+            while True:
+                try:
+                    driver.find_element(By.CLASS_NAME, "progress-bar-header").text
+                    ipydisplay.display(HTML(driver.page_source))
+                    ipydisplay.clear_output(wait=True)
+                    time.sleep(2)
+                except NoSuchElementException:
+                    break
+            ipydisplay.display(HTML(driver.page_source))
+
+            # Store URL of completed RVIC process
+            completed_text = driver.find_element(By.TAG_NAME, "body").text
+            output_url = completed_text.split()[-1]
+            outputs.append(output_url)
 
 
-@output_widget.capture()
 def handle_run(arg):
-    valid = True
-    if not point_list.options:
-        print("Please add at least one point before continuing")
-        valid = False
-    if not start_date.value and not end_date.value:
-        print("Please enter a start and end date before continuing")
-        valid = False
-    if valid:
-        # Start RVIC process
-        url = build_url(start_date.value, end_date.value, points, model.value)
-        input_response = requests.get(f"{base_url}/osprey/input?{url}").content
-        print(input_response.decode("utf-8"))
-
-        # Check status of RVIC process
-        status_url = base_url + input_response.split()[-1].decode("utf-8")
-        driver.get(status_url)
-
-        while True:
-            try:
-                driver.find_element(By.CLASS_NAME, "progress-bar-header").text
-                ipydisplay.display(HTML(driver.page_source))
-                ipydisplay.clear_output(wait=True)
-                time.sleep(2)
-            except NoSuchElementException:
-                break
-        ipydisplay.display(HTML(driver.page_source))
-
-        completed_text = driver.find_element(By.TAG_NAME, "body").text
-        output_url = completed_text.split()[-1]
-        outputs.append(output_url)
-
-
-# def handle_run(arg):
-#    t = threading.Thread(target=handle_run_thread)
-#    t.start()
+    # Use threads to ensure that the request can be submitted and monitored
+    # while users can modify the map parameters and submit other requests
+    t = threading.Thread(target=handle_run_thread)
+    t.start()
 
 
 def handle_add(arg):
