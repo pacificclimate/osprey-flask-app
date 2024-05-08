@@ -12,4 +12,4 @@ RUN pip install pipenv==2022.10.25 && \
     pipenv install --dev
 
 EXPOSE 5000
-CMD ["pipenv", "run", "gunicorn", "--timeout", "0", "--worker-class=gthread", "--threads=10", "--bind=0.0.0.0:5000", "osprey_flask_app:create_app()"]
+ENTRYPOINT ["pipenv", "run", "gunicorn", "--config", "gunicorn.conf", "--log-config", "logging.conf", "--bind=0.0.0.0:5000", "osprey_flask_app:create_app()"]
