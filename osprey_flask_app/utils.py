@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import logging
 import requests
 import netCDF4
