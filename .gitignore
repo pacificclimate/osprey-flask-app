@@ -8,7 +8,6 @@ __pycache__/
 *.Rhistory
 
 # Environments
-.env
 .venv
 env/
 venv*/
