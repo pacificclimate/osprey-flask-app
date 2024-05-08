@@ -29,12 +29,19 @@ ports = {}  # Store ports used for Listener in each job
 
 
 def get_available_port():
+    """Starting from port 5005, get the first port number not currently
+    used by a Listener in the osprey container. This is to ensure multiple
+    sockets can be created for passing convolution timestamps from osprey to
+    osprey-flask-app.
+    """
     port = 5005
     while port in ports.values():
         job_id = list(ports.keys())[list(ports.values()).index(port)]
         if not jobs[job_id].done():
             port += 1
         else:
+            # This happens if a job is completed, but the status URL for the completed job was not queried.
+            # Replace the completed job with this new job.
             ports.pop(job_id)
             break
     return port
@@ -47,19 +54,18 @@ def get_available_port():
 def input_route():
     """Provide route to get input parameters for full_rvic process.
     Expected inputs (given in url)
-        1. case_id (str): Case ID for the RVIC process.
-        2. run_startdate (str): Run start date. Only used for startup and drystart runs.
-        3. stop_date (str): Run stop date.
-        4. lons (str): Comma-separated longitudes for pour point outlets.
-        5. lats (str): Comma-separated latitudes for pour point outlets.
-        6. names (str): Optional Comma-separated outlets to route to (one for each [lon, lat] coordinate)
-        7. long_names (str): Optional longer descriptions of pour point outlets.
-        8. model (str): Climate model to use to get input forcings. List of models can be found
+        1. run_startdate (str): Run start date. Only used for startup and drystart runs.
+        2. stop_date (str): Run stop date.
+        3. lons (str): Comma-separated longitudes for pour point outlets.
+        4. lats (str): Comma-separated latitudes for pour point outlets.
+        5. names (str): Optional Comma-separated outlets to route to (one for each [lon, lat] coordinate)
+        6. long_names (str): Optional longer descriptions of pour point outlets.
+        7. model (str): Climate model to use to get input forcings. List of models can be found
         in '/osprey/models'. Default is 'ACCESS1-0_rcp45_r1i1p1'.
-        9. version (int): Return RVIC version string (1) or not (0). Default is 1.
-        10. np (int): Number of processors used to run job. Default is 1.
-        11. params_config_dict (str): Dictionary containing input configuration for Parameters process.
-        12. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
+        8. version (int): Return RVIC version string (1) or not (0). Default is 1.
+        9. np (int): Number of processors used to run job. Default is 1.
+        10. params_config_dict (str): Dictionary containing input configuration for Parameters process.
+        11. convolve_config_dict (str): Dictionary containing input configuration for Convolution process.
 
     Example url: http://127.0.0.1:5001/osprey/input?run_startdate=2012-12-01-00&stop_date=2012-12-31&lons=-116.46875&lats=50.90625&names=BCHSP&params_config_dict={"OPTIONS": {"LOG_LEVEL": "CRITICAL"}}&convolve_config_dict={"OPTIONS": {"CASESTR": "Historical"}}
     Returns output netCDF file after Convolution process.
@@ -85,7 +91,9 @@ def input_route():
     jobs[job_id] = rvic_job
     dates[job_id] = (arg_dict["run_startdate"], arg_dict["stop_date"])
     ports[job_id] = listener_port
-    status_url = os.environ.get("APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30113") + url_for("osprey.status_route", job_id=job_id)
+    status_url = os.environ.get(
+        "APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30110"
+    ) + url_for("osprey.status_route", job_id=job_id)
     return Response(
         "RVIC Process started. Check status: " + status_url,
         headers={"Location": status_url},
@@ -171,12 +179,16 @@ def status_route(job_id):
 
     else:
         try:
+            # Request is completed, so the Listener is no longer active. Ensure the port number
+            # used for this job can be used by a new job.
             ports.pop(job_id)
         except:
+            # This happens if the status URL for the completed request is opened multiple times.
             pass
         return Response(
             "Process completed. Get output: "
-            + os.environ.get("APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30113") + url_for("osprey.output_route", job_id=job_id),
+            + os.environ.get("APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30110")
+            + url_for("osprey.output_route", job_id=job_id),
             status=200,
         )
 
@@ -194,7 +206,9 @@ def output_route(job_id):
         return Response(f"Process has failed. {job_exception}", status=404)
 
     if not job.done():
-        status_url = os.environ.get("APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30113") + url_for("osprey.status_route", job_id=job_id)
+        status_url = os.environ.get(
+            "APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30110"
+        ) + url_for("osprey.status_route", job_id=job_id)
         return Response(
             f"Process is not done. Please check {status_url} for progress.", status=302
         )
