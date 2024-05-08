@@ -35,6 +35,7 @@ def get_available_port():
         if not jobs[job_id].done():
             port += 1
         else:
+            ports.pop(job_id)
             break
     return port
 
@@ -84,7 +85,7 @@ def input_route():
     jobs[job_id] = rvic_job
     dates[job_id] = (arg_dict["run_startdate"], arg_dict["stop_date"])
     ports[job_id] = listener_port
-    status_url = url_for("osprey.status_route", job_id=job_id)
+    status_url = os.environ.get("APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30113") + url_for("osprey.status_route", job_id=job_id)
     return Response(
         "RVIC Process started. Check status: " + status_url,
         headers={"Location": status_url},
@@ -169,10 +170,13 @@ def status_route(job_id):
         return render_template("index.html", job_id=job_id)
 
     else:
-        ports.pop(job_id)
+        try:
+            ports.pop(job_id)
+        except:
+            pass
         return Response(
             "Process completed. Get output: "
-            + url_for("osprey.output_route", job_id=job_id),
+            + os.environ.get("APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30113") + url_for("osprey.output_route", job_id=job_id),
             status=200,
         )
 
@@ -190,7 +194,7 @@ def output_route(job_id):
         return Response(f"Process has failed. {job_exception}", status=404)
 
     if not job.done():
-        status_url = url_for("osprey.status_route", job_id=job_id)
+        status_url = os.environ.get("APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30113") + url_for("osprey.status_route", job_id=job_id)
         return Response(
             f"Process is not done. Please check {status_url} for progress.", status=302
         )
