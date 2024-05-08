@@ -4,10 +4,8 @@ services:
   osprey-flask-app:
     image: pcic/osprey-flask-app:0.2.0
     container_name: osprey-flask-app
-    environment:
-      - LISTENER_HOST=osprey
-      - LISTENER_PORT=5005
-      - OSPREY_URL=https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/osprey/wps
+    env_file:
+      - ./.env
     ports:
       - "30110:5000"
     volumes:
