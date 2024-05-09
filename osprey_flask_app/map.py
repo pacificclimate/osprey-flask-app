@@ -15,7 +15,7 @@ from selenium.common.exceptions import NoSuchElementException
 from IPython import display as ipydisplay
 from IPython.display import HTML
 
-load_dotenv() # Load APP_ROOT variable for base url
+load_dotenv()  # Load APP_ROOT variable for base url
 
 with open("domains.json") as f:
     data = json.load(f)
