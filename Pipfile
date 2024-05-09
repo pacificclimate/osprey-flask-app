@@ -17,11 +17,11 @@ xarray = "==0.16.2"
 birdhouse-birdy = "==0.8.0"
 ipython = "*"
 gunicorn = {extras = ["gthread"]}
-gevent = "*"
 ipywidgets = "==7.7.2"
 ipyleaflet = "==0.16.0"
 shapely = "==1.8.2"
 jupyterlab = "==3.4.3"
+python-dotenv = "*"
 owslib = "==0.28.1"
 dask = {extras = [ "dataframe",]}
 wps-tools = {version="1.3.1", index="pcic"}

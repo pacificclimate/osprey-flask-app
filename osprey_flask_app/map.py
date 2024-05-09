@@ -3,7 +3,7 @@ import requests
 import threading
 import json
 import time
-import os
+from dotenv import load_dotenv
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
@@ -14,6 +14,8 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from IPython import display as ipydisplay
 from IPython.display import HTML
+
+load_dotenv() # Load APP_ROOT variable for base url
 
 with open("domains.json") as f:
     data = json.load(f)
@@ -87,7 +89,7 @@ def handle_run_thread():
         if valid:
             # Start RVIC process
             base_url = os.environ.get(
-                "APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30113"
+                "APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30110"
             )
             url = build_url(start_date.value, end_date.value, points, model.value)
             input_response = requests.get(f"{base_url}/osprey/input?{url}").content
@@ -116,6 +118,7 @@ def handle_run_thread():
             completed_text = driver.find_element(By.TAG_NAME, "body").text
             output_url = completed_text.split()[-1]
             outputs.append(output_url)
+            driver.quit()
 
 
 def handle_run(arg):
