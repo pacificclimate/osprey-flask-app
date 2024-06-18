@@ -12,8 +12,8 @@ services:
       - /storage/data/projects/hydrology/vic_gen2/input/routing:/storage/data/projects/hydrology/vic_gen2/input/routing:ro
       - /storage/data/projects/hydrology/vic_gen2/output/projections:/storage/data/projects/hydrology/vic_gen2/output/projections:ro
     networks:
-      - pcicbr0
+      - pcicbr1 # Isolated network with osprey containers
 
 networks:
-  pcicbr0:
+  pcicbr1:
     external: true
