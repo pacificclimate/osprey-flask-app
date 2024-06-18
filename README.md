@@ -57,7 +57,7 @@ To start the interactive map, run the following (you can also use `lab` instead 
 jupyter notebook
 ```
 
-In jupyter notebook, open  `osprey_flask_app/map.ipynb` then the first two cells to load the interactive map. Select dates and pour points from the map, then start the process by clicking the `Run` button. This returns a status URL which can be opened in a new tab to monitor the progress of the process. Wait for the status page to display the `Process completed` message before running the rest of the cells. The resulting `NetCDF` file will be saved to your `Downloads` folder. 
+In jupyter notebook, open  `map.ipynb` then the first two cells to load the interactive map. Select dates and pour points from the map, then start the process by clicking the `Run` button. This returns a status URL which can be opened in a new tab to monitor the progress of the process. Wait for the status page to display the `Process completed` message before running the rest of the cells. The resulting `NetCDF` file will be saved to your `Downloads` folder.
 
 ## Docker
 
