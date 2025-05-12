@@ -104,9 +104,9 @@ def get_input_files(arg_dict):
     model_subdir = f"{model}/flux"
 
     new_arg_dict = dict(arg_dict)
-    new_arg_dict[
-        "uh_box"
-    ] = f"{http_routing_url}/uh/uhbox.csv"  # Unit hydrograph to route flow to the edge of each grid cell. Used for all RVIC runs
+    new_arg_dict["uh_box"] = (
+        f"{http_routing_url}/uh/uhbox.csv"  # Unit hydrograph to route flow to the edge of each grid cell. Used for all RVIC runs
+    )
     lons = new_arg_dict["lons"].split(",")
     lats = new_arg_dict["lats"].split(",")
     if len(lons) != len(lats):
