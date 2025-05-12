@@ -1,8 +1,9 @@
 import pytest
 
-from pkg_resources import resource_filename
-import re
+from osprey_flask_app import create_app
+from importlib.resources import files
 import os
+import re
 import time
 import requests
 from selenium import webdriver
@@ -245,17 +246,15 @@ def test_run_full_rvic_online_invalid(kwargs):
 @pytest.mark.parametrize(
     ("files"),
     [
-        (
-            [
-                resource_filename("tests", "data/samples/sample_pour.txt"),
-                resource_filename("tests", "data/samples/uhbox.csv"),
-                resource_filename("tests", "data/samples/sample_flow_parameters.nc"),
-                resource_filename("tests", "data/samples/sample_routing_domain.nc"),
-                resource_filename("tests", "data/samples/sample_input_forcings.nc"),
-                resource_filename("tests", "data/configs/parameters.cfg"),
-                resource_filename("tests", "data/configs/convolve.cfg"),
-            ]
-        )
+        [
+            str((files("tests") / "data/samples/sample_pour.txt").resolve()),
+            str((files("tests") / "data/samples/uhbox.csv").resolve()),
+            str((files("tests") / "data/samples/sample_flow_parameters.nc").resolve()),
+            str((files("tests") / "data/samples/sample_routing_domain.nc").resolve()),
+            str((files("tests") / "data/samples/sample_input_forcings.nc").resolve()),
+            str((files("tests") / "data/configs/parameters.cfg").resolve()),
+            str((files("tests") / "data/configs/convolve.cfg").resolve()),
+        ]
     ],
 )
 def test_resource_filename(files):
