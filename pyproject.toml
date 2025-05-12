@@ -1,0 +1,92 @@
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "osprey-flask-app"
+version = "0.2.0"
+description = "A service to expose on-demand routed streamflow."
+authors = [{ name = "PCIC" }]
+license = { text = "GNU General Public License v3" }
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["osprey", "flask"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX",
+    "Programming Language :: Python",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+
+dependencies = [
+    "click==8.1.2",
+    "Flask==2.0.0",
+    "werkzeug==2.0.3",
+    "netCDF4",
+    "xarray==0.16.2",
+    "birdhouse-birdy==0.8.0",
+    "wps-tools==1.3.1",
+    "ipython",
+    "gunicorn",
+    "ipywidgets==7.7.2",
+    "ipyleaflet==0.16.0",
+    "shapely==1.8.2",
+    "jupyterlab==3.4.3",
+    "dask[dataframe]",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black==23.10.1",
+    "pyflakes==2.3.1",
+    "pytest==6.2.5",
+    "pytest-cov==2.11.1",
+]
+
+[[tool.poetry.source]]
+name = "pcic"
+url = "https://pypi.pacificclimate.org/simple/"
+priority = "primary"
+
+[tool.pytest.ini_options]
+markers = [
+    "online: marks tests that use online resources (deselect with '-m \"not online\"')",
+]
+
+[tool.poe.tasks]
+
+[tool.poe.tasks.install]
+cmd = "poetry install"
+help = "Install project dependencies"
+
+[tool.poe.tasks.develop]
+cmd = "poetry install --with dev"
+help = "Install dev dependencies (tests, lint, docs)"
+
+[tool.poe.tasks.run]
+cmd = "poetry run flask run --host=0.0.0.0 --port=5000"
+env = { FLASK_APP = "wsgi.py", FLASK_ENV = "development" }
+help = "Run the Flask app with environment set"
+
+[tool.poe.tasks.test]
+cmd = "pytest -v -m 'not slow and not online' tests/"
+help = "Run fast/offline tests"
+
+[tool.poe.tasks.test-all]
+cmd = "pytest -v tests/"
+help = "Run all tests including slow and online"
+
+[tool.poe.tasks.lint]
+cmd = "black . --check"
+help = "Check code formatting with Black"
+
