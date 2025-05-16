@@ -10,7 +10,7 @@ from dateutil.parser import parse
 def get_base_urls():
     """Get base THREDDS urls used for obtaining full input filepaths."""
     url_prefix = os.environ.get(
-        "THREDDS_URL", "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds"
+        "THREDDS_URL", "https://marble-dev01.pcic.uvic.ca/twitcher/ows/proxy/thredds"
     )
     url_suffix = "datasets/storage/data/projects/hydrology/vic_gen2"
     base_http_url = f"{url_prefix}/fileServer/{url_suffix}"
