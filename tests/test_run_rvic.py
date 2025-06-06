@@ -14,7 +14,9 @@ from bs4 import BeautifulSoup
 
 def full_rvic_test(kwargs, valid_input=True):
     port = os.environ.get("APP_PORT", 5000)
-    base_url = f"http://localhost:{port}"  # Requires running instance of app on a terminal
+    base_url = (
+        f"http://localhost:{port}"  # Requires running instance of app on a terminal
+    )
 
     flattened_kwargs = {
         k: (json.dumps(v) if isinstance(v, dict) else v) for k, v in kwargs.items()
