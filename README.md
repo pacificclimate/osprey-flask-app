@@ -4,7 +4,9 @@ This application is a flask microservice to interact with PCIC's [osprey](https:
 a request is submitted. The maximum number of parallel jobs using this pool, given by `MAX_WORKERS`, has a default value of 1, but it should be set as an environment variable by the developer deploying the service.
 
 ## Installation
+
 We can use `make` to handle the installation process and to initialize the environment variables needed for the app to run. Copy and paste this section into your terminal:
+
 ```
 make
 pipenv shell
@@ -15,13 +17,15 @@ pipenv shell
 In order to handle environment variables on their own, `make run` can be used to initialize the variable that allows the app to be started, and `make develop` can be used to allow the app to be run in `development` mode.
 
 After initializing these variables, the app can be started by running the following command (note that `host` and `port` are optional arguments)
+
 ```
 flask run --host=<host> --port=<port>
 ```
 
 The app is then used by inputting the parameters required for `osprey` in the url. The following shows an example of how to do so. The full list of expected inputs is described in the [input_route](https://github.com/pacificclimate/osprey-flask-app/blob/i5-simplify-inputs/osprey_flask_app/routes.py#L19) function. There are some aspects to note when supplying inputs:
-  1. Rather than provide a `pour_points` file containing coordinates to route the streamflow to, the user must provide lists of `lons` and `lats`, which the app then uses to create the `pour_points` string. The pour points can optionally be described in greater detail using `names` and `long_names`. Example pour points for each watershed can be found in the [samples](https://github.com/pacificclimate/osprey-flask-app/tree/i5-simplify-inputs/tests/data/samples) directory.
-  2. `osprey` contains [config templates](https://github.com/pacificclimate/osprey/blob/master/osprey/config_templates.py) that are used for the `parameters` and `convolution` processes, and any options that the user would like to change must be provided as dictionaries called `param_config_dict` and `convolve_config_dict` respectively.
+
+1. Rather than provide a `pour_points` file containing coordinates to route the streamflow to, the user must provide lists of `lons` and `lats`, which the app then uses to create the `pour_points` string. The pour points can optionally be described in greater detail using `names` and `long_names`. Example pour points for each watershed can be found in the [samples](https://github.com/pacificclimate/osprey-flask-app/tree/i5-simplify-inputs/tests/data/samples) directory.
+2. `osprey` contains [config templates](https://github.com/pacificclimate/osprey/blob/master/osprey/config_templates.py) that are used for the `parameters` and `convolution` processes, and any options that the user would like to change must be provided as dictionaries called `param_config_dict` and `convolve_config_dict` respectively.
 
 ```
 # Generic example
@@ -30,6 +34,7 @@ http://127.0.0.1:5000/osprey/input/?run_startdate=<run_startdate>&...
 # Example
 http://127.0.0.1:5000/osprey/input/?run_startdate=2011-12-01&...
 ```
+
 This causes the app to run the [full_rvic](https://github.com/pacificclimate/osprey/blob/master/osprey/processes/wps_full_rvic.py) process asynchronously and returns a [status](https://github.com/pacificclimate/osprey-flask-app/blob/a05e0b3fe61152f40b795eb0069d1678f32d01b8/osprey_flask_app/routes.py#L93) url that can be used to check if the process is still running or is completed.
 
 ```
@@ -39,6 +44,7 @@ http://127.0.0.1:5000/osprey/status/<id>
 # Example
 http://127.0.0.1:5000/osprey/status/12345
 ```
+
 Once the process is completed, an [output](https://github.com/pacificclimate/osprey-flask-app/blob/a05e0b3fe61152f40b795eb0069d1678f32d01b8/osprey_flask_app/routes.py#L107) url is returned that can then be visited to download a netCDF file containing the streamflow output.
 
 ```
@@ -57,7 +63,7 @@ To start the interactive map, run the following (you can also use `lab` instead 
 jupyter notebook
 ```
 
-In jupyter notebook, open  `map.ipynb` then the first two cells to load the interactive map. Select dates and pour points from the map, then start the process by clicking the `Run` button. This returns a status URL which can be opened in a new tab to monitor the progress of the process. Wait for the status page to display the `Process completed` message before running the rest of the cells. The resulting `NetCDF` file will be saved to your `Downloads` folder.
+In jupyter notebook, open `map.ipynb` then the first two cells to load the interactive map. Select dates and pour points from the map, then start the process by clicking the `Run` button. This returns a status URL which can be opened in a new tab to monitor the progress of the process. Wait for the status page to display the `Process completed` message before running the rest of the cells. The resulting `NetCDF` file will be saved to your `Downloads` folder.
 
 ## Docker
 
@@ -66,37 +72,41 @@ To run the application using a docker container, run the following:
 ```
 docker-compose up -d
 ```
+
 To stop the container:
 
 ```
 docker-compose down -f
 ```
+
 The urls will look similar to the aforementioned examples with a different prefix:
 
 ```
 # Generic example
-http://docker-dev03.pcic.uvic.ca:30110/osprey/input/?run_startdate=<run_startdate>&...
+http://marble-dev01.pcic.uvic.ca:30110/osprey/input/?run_startdate=<run_startdate>&...
 
 # Example
-http://docker-dev03.pcic.uvic.ca:30110/osprey/input/?run_startdate=2011-12-01&...
+http://marble-dev01.pcic.uvic.ca:30110/osprey/input/?run_startdate=2011-12-01&...
 ```
 
 ## Run Tests
 
 The automated tests can be run by executing the following command:
+
 ```
 pytest
 ```
 
 Note that the automated tests require an instance of the app already running on another terminal. Note that the automated tests use [selenium](https://pypi.org/project/selenium/) to monitor the status route of the currently running RVIC test. In particular, it is used to obtain the values of the progress bar header text and the percentage from the html template. In order to use selenium with Firefox on Linux, the following steps must be performed:
-  1. Download `geckodriver` from https://github.com/mozilla/geckodriver/releases.
-  2. Open the .gz file and extract `geckodriver`.
-  3. Move `geckodriver` to `/usr/local/bin/`.
-  
+
+1. Download `geckodriver` from https://github.com/mozilla/geckodriver/releases.
+2. Open the .gz file and extract `geckodriver`.
+3. Move `geckodriver` to `/usr/local/bin/`.
 
 ## Run Progress Notebook
 
 A Jupyter notebook demonstrating a full run of RVIC using the progress bar can be found in `Progress.ipynb`. In order to run this notebook, first run the following:
+
 ```
 jupyter lab
 ```

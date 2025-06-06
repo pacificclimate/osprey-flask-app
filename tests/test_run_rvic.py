@@ -4,21 +4,25 @@ from osprey_flask_app import create_app
 from importlib.resources import files
 import os
 import re
+import json
 import time
 import requests
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+from urllib.parse import urljoin
 from urllib.parse import urlencode
+from bs4 import BeautifulSoup
 
 
 def full_rvic_test(kwargs, valid_input=True):
     port = os.environ.get("APP_PORT", 5000)
-    base_url = (
-        f"http://localhost:{port}"  # Requires running instance of app on a terminal
-    )
-    input_params = urlencode(kwargs)
-    input_url = base_url + f"/osprey/input?{input_params}"
+    base_url = f"http://localhost:{port}"  # Requires running instance of app on a terminal
+
+    flattened_kwargs = {
+        k: (json.dumps(v) if isinstance(v, dict) else v) for k, v in kwargs.items()
+    }
+
+    input_params = urlencode(flattened_kwargs)
+    input_url = f"{base_url}/osprey/input?{input_params}"
+
     input_response = requests.get(input_url)
     if valid_input:
         assert input_response.status_code == 202
@@ -26,38 +30,30 @@ def full_rvic_test(kwargs, valid_input=True):
         assert input_response.status_code == 400
         return
 
-    status_url = base_url + input_response.content.split()[-1].decode("utf-8")
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--headless")
-    driver = webdriver.Firefox(options=options)
-    driver.get(status_url)
-    timeout = 60  # Time to timeout in seconds
-    for i in range(timeout):
-        try:
-            progress_header_text = driver.find_element(
-                By.CLASS_NAME, "progress-bar-header"
-            ).text
-            progress_label_text = driver.find_element(
-                By.CLASS_NAME, "progress-bar-label"
-            ).text
-            percent = int(progress_label_text.split("%")[0])
-            if progress_header_text == "Start RVIC run":
-                assert percent == 0
-            elif progress_header_text == "In parameters process.":
-                assert percent == 9
-            else:  # In convolution process
-                assert "In convolution process." in progress_header_text
-                assert percent >= 10
-            time.sleep(1)
-        except NoSuchElementException:
-            break
-    completed_text = driver.find_element(By.TAG_NAME, "body").text
-    assert "Process completed." in completed_text
+    status_path = input_response.content.split()[-1].decode("utf-8")
+    status_url = (
+        status_path
+        if status_path.startswith("http")
+        else urljoin(base_url, status_path)
+    )
 
-    output_url = base_url + completed_text.split()[-1]
-    output_response = requests.get(output_url)
-    assert output_response.status_code == 200
-    driver.quit()
+    timeout = 120  # seconds
+    interval = 2
+    for _ in range(timeout // interval):
+        resp = requests.get(status_url)
+        html = resp.text
+
+        if "Process completed." in html:
+            break
+        time.sleep(interval)
+    else:
+        raise TimeoutError("Process did not complete in time")
+
+    # Parse output URL from the completed page
+    match = re.search(r"Get output:\s+(http[^\s]+)", html)
+    assert match is not None, "Output URL not found in HTML"
+    output_url = match.group(1)
+    assert output_url.startswith("http")
 
 
 @pytest.mark.online

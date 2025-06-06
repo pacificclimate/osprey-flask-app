@@ -3,17 +3,18 @@ import requests
 import threading
 import json
 import time
+import os
+import re
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from ipywidgets import *
 from ipyleaflet import *
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+
 from IPython import display as ipydisplay
-from IPython.display import HTML
+from IPython.display import HTML, clear_output
 
 load_dotenv()  # Load APP_ROOT variable for base url
 
@@ -29,9 +30,6 @@ fraser_coords = [
 columbia_coords = [
     (coord[0], coord[1]) for coord in data["borders"]["columbia"]["coordinates"]
 ]
-
-options = webdriver.FirefoxOptions()
-options.add_argument("--headless")
 
 
 def handle_click(**kwargs):
@@ -75,50 +73,53 @@ def handle_click(**kwargs):
 
 
 def handle_run_thread():
-    driver = webdriver.Firefox(options=options)
-    output_widget = Output()
-    display(output_widget)
-    with output_widget:
+    run_output = Output()
+    results_box.children += (run_output,)
+
+    with run_output:
         valid = True
         if not point_list.options:
             print("Please add at least one point before continuing")
-            valid = False
-        if not start_date.value and not end_date.value:
+            return
+        if not start_date.value or not end_date.value:
             print("Please enter a start and end date before continuing")
-            valid = False
-        if valid:
-            # Start RVIC process
-            base_url = os.environ.get(
-                "APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30110"
-            )
-            url = build_url(start_date.value, end_date.value, points, model.value)
-            input_response = requests.get(f"{base_url}/osprey/input?{url}").content
-            print(input_response.decode("utf-8"))
+            return
 
-            # Check status of RVIC process
-            status_url = input_response.split()[-1].decode("utf-8")
-            driver.get(status_url)
+        base_url = os.environ.get("APP_ROOT", "http://marble-dev01.pcic.uvic.ca:30110")
+        url = build_url(start_date.value, end_date.value, points, model.value)
 
-            """TODO: This while loop is supposed to render the progress bar for each request
-            below the interactive map; however, for some reason, nothing gets displayed. Currently,
-            users can click on the displayed status URL to view the progress bar in a separate tab. Modify
-            this loop or possibly other parts of the function to ensure progress bars get displayed.
-            """
-            while True:
-                try:
-                    driver.find_element(By.CLASS_NAME, "progress-bar-header").text
-                    ipydisplay.display(HTML(driver.page_source))
-                    ipydisplay.clear_output(wait=True)
-                    time.sleep(2)
-                except NoSuchElementException:
+        try:
+            input_response = requests.get(f"{base_url}/osprey/input?{url}")
+            input_response.raise_for_status()
+        except Exception as e:
+            print("Failed to submit job:", e)
+            return
+
+        print(input_response.text)
+
+        status_url = input_response.content.split()[-1].decode("utf-8")
+        print("Polling:", status_url)
+
+        while True:
+            try:
+                html = requests.get(status_url).text
+                if "Process completed." in html:
                     break
-            ipydisplay.display(HTML(driver.page_source))
+                clear_output(wait=True)
+                display(HTML(html))
+                time.sleep(2)
+            except Exception as e:
+                print("Polling error:", e)
+                return
 
-            # Store URL of completed RVIC process
-            completed_text = driver.find_element(By.TAG_NAME, "body").text
-            output_url = completed_text.split()[-1]
+        display(HTML(html))
+        match = re.search(r"Get output:\s+(http[^\s]+)", html)
+        if match:
+            output_url = match.group(1)
             outputs.append(output_url)
-            driver.quit()
+            print("Output URL:", output_url)
+        else:
+            print("Failed to extract output URL")
 
 
 def handle_run(arg):
@@ -315,3 +316,4 @@ control_box = Box(
     ],
     layout=box_layout,
 )
+results_box = VBox()
