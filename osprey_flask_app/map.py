@@ -13,8 +13,7 @@ from dateutil.relativedelta import relativedelta
 from ipywidgets import *
 from ipyleaflet import *
 
-from IPython import display as ipydisplay
-from IPython.display import HTML, clear_output
+from IPython.display import display, clear_output
 
 load_dotenv()  # Load APP_ROOT variable for base url
 
@@ -73,53 +72,81 @@ def handle_click(**kwargs):
 
 
 def handle_run_thread():
+    progress_bar = IntProgress(value=0, min=0, max=100, description="Progress:")
+    status_label = HTML(value="Starting...")
+    progress_widget = VBox([progress_bar, status_label])
     run_output = Output()
-    results_box.children += (run_output,)
 
-    with run_output:
-        valid = True
-        if not point_list.options:
-            print("Please add at least one point before continuing")
-            return
-        if not start_date.value or not end_date.value:
-            print("Please enter a start and end date before continuing")
-            return
+    # Combine into a visible group
+    group = VBox([progress_widget, run_output])
+    results_box.children += (group,)
 
-        base_url = os.environ.get("APP_ROOT", "http://marble-dev01.pcic.uvic.ca:30110")
-        url = build_url(start_date.value, end_date.value, points, model.value)
+    def log(text):
+        run_output.append_stdout(text + "\n")
 
+    if not point_list.options:
+        log("Please add at least one point before continuing")
+        return
+    if not start_date.value or not end_date.value:
+        log("Please enter a start and end date before continuing")
+        return
+
+    base_url = os.environ.get("APP_ROOT", "http://marble-dev01.pcic.uvic.ca:30110")
+    url = build_url(start_date.value, end_date.value, points, model.value)
+
+    try:
+        input_response = requests.get(f"{base_url}/osprey/input?{url}")
+        input_response.raise_for_status()
+    except Exception as e:
+        log(f"Failed to submit job: {e}")
+        return
+
+    log(input_response.text)
+
+    status_url = input_response.content.split()[-1].decode("utf-8")
+    job_id = status_url.split("/")[-1]
+    progress_url = f"{base_url}/osprey/progress/{job_id}"
+
+    while True:
         try:
-            input_response = requests.get(f"{base_url}/osprey/input?{url}")
-            input_response.raise_for_status()
+            html = requests.get(status_url).text
+            if "Process completed." in html:
+                progress_bar.value = 100
+                status_label.value = "Process completed!"
+                break
+
+            try:
+                progress_response = requests.get(progress_url, stream=True, timeout=5)
+                for line in progress_response.iter_lines():
+                    if line.startswith(b"data: "):
+                        data_str = line[6:].decode("utf-8")
+                        try:
+                            data = json.loads(data_str)
+                            progress_bar.value = int(data["percent"])
+                            timestamp = data["timestamp"]
+                            status_label.value = (
+                                f"Processing: {timestamp}"
+                                if timestamp
+                                else "Processing..."
+                            )
+                            break
+                        except json.JSONDecodeError:
+                            pass
+            except requests.exceptions.RequestException:
+                pass
+
+            time.sleep(2)
         except Exception as e:
-            print("Failed to submit job:", e)
+            log(f"Polling error: {e}")
             return
 
-        print(input_response.text)
-
-        status_url = input_response.content.split()[-1].decode("utf-8")
-        print("Polling:", status_url)
-
-        while True:
-            try:
-                html = requests.get(status_url).text
-                if "Process completed." in html:
-                    break
-                clear_output(wait=True)
-                display(HTML(html))
-                time.sleep(2)
-            except Exception as e:
-                print("Polling error:", e)
-                return
-
-        display(HTML(html))
-        match = re.search(r"Get output:\s+(http[^\s]+)", html)
-        if match:
-            output_url = match.group(1)
-            outputs.append(output_url)
-            print("Output URL:", output_url)
-        else:
-            print("Failed to extract output URL")
+    match = re.search(r"Get output:\s+(http[^\s]+)", html)
+    if match:
+        output_url = match.group(1)
+        outputs.append(output_url)
+        log(f"Output URL: {output_url}")
+    else:
+        log("Failed to extract output URL")
 
 
 def handle_run(arg):
