@@ -4728,30 +4728,31 @@ reference = "pcic"
 
 [[package]]
 name = "wps-tools"
-version = "2.1.3"
+version = "2.1.4"
 description = "A collection of modules used to help create wps processes"
 optional = false
 python-versions = ">=3.10,<=3.14"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "wps_tools-2.1.4-py3-none-any.whl", hash = "sha256:86f37128d78ee3eae02837be01eb8f567d89301a6733443ae78c38d859e693de"},
+    {file = "wps_tools-2.1.4.tar.gz", hash = "sha256:c71be69137c7ee5b55c4acf91c89fa5604c34daf75b07cbb28c70dac9ca993f3"},
+]
 
 [package.dependencies]
-beautifulsoup4 = "4.13.4"
-nchelpers = ">=5.5.11"
-netCDF4 = ">=1.5.4"
-pywps = ">=4.2.6"
+beautifulsoup4 = ">=4.13.4,<5.0.0"
+nchelpers = ">=5.5.11,<6.0.0"
+netcdf4 = ">=1.7.2,<2.0.0"
+pywps = ">=4.6.0,<5.0.0"
 
 [package.extras]
-complete = ["black (>=22.3.0)", "pytest (>=8.2.1)", "rpy2 (==3.3.6)"]
+complete = ["black (>=25.1.0,<26.0.0)", "pytest (>=8.3.5,<9.0.0)", "rpy2 (>=3.3.6,<4.0.0)"]
 r = ["rpy2 (==3.3.6)"]
-test = ["black (>=22.3.0)", "pytest (>=8.2.1)"]
+test = ["black (>=25.1.0,<26.0.0)", "pytest (>=8.3.5,<9.0.0)"]
 
 [package.source]
-type = "git"
-url = "https://github.com/pacificclimate/wps-tools.git"
-reference = "py-sprint-25q1"
-resolved_reference = "0071e0cffaebbcc9c0f77142c2d011358443b687"
+type = "legacy"
+url = "https://pypi.pacificclimate.org/simple"
+reference = "pcic"
 
 [[package]]
 name = "wrapt"
@@ -4953,4 +4954,4 @@ dev = ["black", "pyflakes", "pytest", "pytest_cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11, <3.13"
-content-hash = "0aba93ea38dc565e64403083240bf03e8d5fee0d0aeba68862dee70f512bce98"
+content-hash = "0a99c9cc48a9040824cd438665e2a90c7b3fc1e628f390752214ec71b5e99941"

@@ -19,7 +19,6 @@ WORKDIR /app
 ENV POETRY_VIRTUALENVS_CREATE=false
 
 RUN poetry config repositories.pcic https://pypi.pacificclimate.org/simple/ && \
-    poetry lock && \
     poetry install
 EXPOSE 5000
 CMD ["poetry", "run", "gunicorn", "--timeout", "0", "--bind=0.0.0.0:5000", "osprey_flask_app:create_app()"]
