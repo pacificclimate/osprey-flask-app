@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import logging
 import requests
 import netCDF4
@@ -8,7 +9,9 @@ from dateutil.parser import parse
 
 def get_base_urls():
     """Get base THREDDS urls used for obtaining full input filepaths."""
-    url_prefix = "https://docker-dev03.pcic.uvic.ca/twitcher/ows/proxy/thredds"
+    url_prefix = os.environ.get(
+        "THREDDS_URL", "https://marble-dev01.pcic.uvic.ca/twitcher/ows/proxy/thredds"
+    )
     url_suffix = "datasets/storage/data/projects/hydrology/vic_gen2"
     base_http_url = f"{url_prefix}/fileServer/{url_suffix}"
     base_opendap_url = f"{url_prefix}/dodsC/{url_suffix}"
@@ -101,9 +104,9 @@ def get_input_files(arg_dict):
     model_subdir = f"{model}/flux"
 
     new_arg_dict = dict(arg_dict)
-    new_arg_dict[
-        "uh_box"
-    ] = f"{http_routing_url}/uh/uhbox.csv"  # Unit hydrograph to route flow to the edge of each grid cell. Used for all RVIC runs
+    new_arg_dict["uh_box"] = (
+        f"{http_routing_url}/uh/uhbox.csv"  # Unit hydrograph to route flow to the edge of each grid cell. Used for all RVIC runs
+    )
     lons = new_arg_dict["lons"].split(",")
     lats = new_arg_dict["lats"].split(",")
     if len(lons) != len(lats):

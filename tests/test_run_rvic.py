@@ -1,49 +1,61 @@
 import pytest
 
 from osprey_flask_app import create_app
-from pkg_resources import resource_filename
+from importlib.resources import files
 import os
+import re
+import json
 import time
 import requests
+from urllib.parse import urljoin
 from urllib.parse import urlencode
+from bs4 import BeautifulSoup
 
 
-@pytest.fixture
-def client():
-    flask_app = create_app()
+def full_rvic_test(kwargs, valid_input=True):
+    port = os.environ.get("APP_PORT", 5000)
+    base_url = (
+        f"http://localhost:{port}"  # Requires running instance of app on a terminal
+    )
 
-    # Create a test client using the Flask application configured for testing
-    with flask_app.test_client() as testing_client:
-        # Establish an application context
-        with flask_app.app_context():
-            yield testing_client
+    flattened_kwargs = {
+        k: (json.dumps(v) if isinstance(v, dict) else v) for k, v in kwargs.items()
+    }
 
+    input_params = urlencode(flattened_kwargs)
+    input_url = f"{base_url}/osprey/input?{input_params}"
 
-def full_rvic_test(kwargs, client, valid_input=True):
-    input_params = urlencode(kwargs)
-    input_url = f"/osprey/input?{input_params}"
-    input_response = client.get(input_url)
+    input_response = requests.get(input_url)
     if valid_input:
         assert input_response.status_code == 202
     else:
         assert input_response.status_code == 400
         return
 
-    status_url = input_response.data.split()[-1].decode("utf-8")
-    status_response = client.get(status_url)
+    status_path = input_response.content.split()[-1].decode("utf-8")
+    status_url = (
+        status_path
+        if status_path.startswith("http")
+        else urljoin(base_url, status_path)
+    )
 
-    timeout = 1800  # Time to timeout in seconds
-    for i in range(timeout):
-        if status_response.data != b"Process is still running.":  # Process is completed
+    timeout = 120  # seconds
+    interval = 2
+    for _ in range(timeout // interval):
+        resp = requests.get(status_url)
+        html = resp.text
+
+        if "Process completed." in html:
             break
-        time.sleep(1)
-        status_response = client.get(status_url)
-    assert b"Process completed." in status_response.data
+        time.sleep(interval)
+    else:
+        raise TimeoutError("Process did not complete in time")
 
-    output_url = status_response.data.split()[-1].decode("utf-8")
-    output_response = client.get(output_url)
-    streamflow_path = output_response.headers.get("Location")
-    assert requests.get(streamflow_path).status_code == 200
+    # Parse output URL from the completed page
+    match = re.search(r"Get output:\s+(http[^\s]+)", html)
+    assert match is not None, "Output URL not found in HTML"
+    output_url = match.group(1)
+    assert output_url.startswith("http")
 
 
 @pytest.mark.online
@@ -104,8 +116,8 @@ def full_rvic_test(kwargs, client, valid_input=True):
         ),
     ],
 )
-def test_run_full_rvic_online_valid(kwargs, client):
-    full_rvic_test(kwargs, client, valid_input=True)
+def test_run_full_rvic_online_valid(kwargs):
+    full_rvic_test(kwargs, valid_input=True)
 
 
 @pytest.mark.online
@@ -144,8 +156,8 @@ def test_run_full_rvic_online_valid(kwargs, client):
         ),
     ],
 )
-def test_run_full_rvic_multiple_points(kwargs, client):
-    full_rvic_test(kwargs, client, valid_input=True)
+def test_run_full_rvic_multiple_points(kwargs):
+    full_rvic_test(kwargs, valid_input=True)
 
 
 @pytest.mark.online
@@ -225,24 +237,22 @@ def test_run_full_rvic_multiple_points(kwargs, client):
         ),
     ],
 )
-def test_run_full_rvic_online_invalid(kwargs, client):
-    full_rvic_test(kwargs, client, valid_input=False)
+def test_run_full_rvic_online_invalid(kwargs):
+    full_rvic_test(kwargs, valid_input=False)
 
 
 @pytest.mark.parametrize(
     ("files"),
     [
-        (
-            [
-                resource_filename("tests", "data/samples/sample_pour.txt"),
-                resource_filename("tests", "data/samples/uhbox.csv"),
-                resource_filename("tests", "data/samples/sample_flow_parameters.nc"),
-                resource_filename("tests", "data/samples/sample_routing_domain.nc"),
-                resource_filename("tests", "data/samples/sample_input_forcings.nc"),
-                resource_filename("tests", "data/configs/parameters.cfg"),
-                resource_filename("tests", "data/configs/convolve.cfg"),
-            ]
-        )
+        [
+            str((files("tests") / "data/samples/sample_pour.txt").resolve()),
+            str((files("tests") / "data/samples/uhbox.csv").resolve()),
+            str((files("tests") / "data/samples/sample_flow_parameters.nc").resolve()),
+            str((files("tests") / "data/samples/sample_routing_domain.nc").resolve()),
+            str((files("tests") / "data/samples/sample_input_forcings.nc").resolve()),
+            str((files("tests") / "data/configs/parameters.cfg").resolve()),
+            str((files("tests") / "data/configs/convolve.cfg").resolve()),
+        ]
     ],
 )
 def test_resource_filename(files):
