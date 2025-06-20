@@ -3,17 +3,17 @@ import requests
 import threading
 import json
 import time
+import os
+import re
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from ipywidgets import *
 from ipyleaflet import *
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
-from IPython import display as ipydisplay
-from IPython.display import HTML
+
+from IPython.display import display, clear_output
 
 load_dotenv()  # Load APP_ROOT variable for base url
 
@@ -29,9 +29,6 @@ fraser_coords = [
 columbia_coords = [
     (coord[0], coord[1]) for coord in data["borders"]["columbia"]["coordinates"]
 ]
-
-options = webdriver.FirefoxOptions()
-options.add_argument("--headless")
 
 
 def handle_click(**kwargs):
@@ -75,50 +72,81 @@ def handle_click(**kwargs):
 
 
 def handle_run_thread():
-    driver = webdriver.Firefox(options=options)
-    output_widget = Output()
-    display(output_widget)
-    with output_widget:
-        valid = True
-        if not point_list.options:
-            print("Please add at least one point before continuing")
-            valid = False
-        if not start_date.value and not end_date.value:
-            print("Please enter a start and end date before continuing")
-            valid = False
-        if valid:
-            # Start RVIC process
-            base_url = os.environ.get(
-                "APP_ROOT", "http://docker-dev03.pcic.uvic.ca:30110"
-            )
-            url = build_url(start_date.value, end_date.value, points, model.value)
-            input_response = requests.get(f"{base_url}/osprey/input?{url}").content
-            print(input_response.decode("utf-8"))
+    progress_bar = IntProgress(value=0, min=0, max=100, description="Progress:")
+    status_label = HTML(value="Starting...")
+    progress_widget = VBox([progress_bar, status_label])
+    run_output = Output()
 
-            # Check status of RVIC process
-            status_url = input_response.split()[-1].decode("utf-8")
-            driver.get(status_url)
+    # Combine into a visible group
+    group = VBox([progress_widget, run_output])
+    results_box.children += (group,)
 
-            """TODO: This while loop is supposed to render the progress bar for each request
-            below the interactive map; however, for some reason, nothing gets displayed. Currently,
-            users can click on the displayed status URL to view the progress bar in a separate tab. Modify
-            this loop or possibly other parts of the function to ensure progress bars get displayed.
-            """
-            while True:
-                try:
-                    driver.find_element(By.CLASS_NAME, "progress-bar-header").text
-                    ipydisplay.display(HTML(driver.page_source))
-                    ipydisplay.clear_output(wait=True)
-                    time.sleep(2)
-                except NoSuchElementException:
-                    break
-            ipydisplay.display(HTML(driver.page_source))
+    def log(text):
+        run_output.append_stdout(text + "\n")
 
-            # Store URL of completed RVIC process
-            completed_text = driver.find_element(By.TAG_NAME, "body").text
-            output_url = completed_text.split()[-1]
-            outputs.append(output_url)
-            driver.quit()
+    if not point_list.options:
+        log("Please add at least one point before continuing")
+        return
+    if not start_date.value or not end_date.value:
+        log("Please enter a start and end date before continuing")
+        return
+
+    base_url = os.environ.get("APP_ROOT", "http://marble-dev01.pcic.uvic.ca:30110")
+    url = build_url(start_date.value, end_date.value, points, model.value)
+
+    try:
+        input_response = requests.get(f"{base_url}/osprey/input?{url}")
+        input_response.raise_for_status()
+    except Exception as e:
+        log(f"Failed to submit job: {e}")
+        return
+
+    log(input_response.text)
+
+    status_url = input_response.content.split()[-1].decode("utf-8")
+    job_id = status_url.split("/")[-1]
+    progress_url = f"{base_url}/osprey/progress/{job_id}"
+
+    while True:
+        try:
+            html = requests.get(status_url).text
+            if "Process completed." in html:
+                progress_bar.value = 100
+                status_label.value = "Process completed!"
+                break
+
+            try:
+                progress_response = requests.get(progress_url, stream=True, timeout=5)
+                for line in progress_response.iter_lines():
+                    if line.startswith(b"data: "):
+                        data_str = line[6:].decode("utf-8")
+                        try:
+                            data = json.loads(data_str)
+                            progress_bar.value = int(data["percent"])
+                            timestamp = data["timestamp"]
+                            status_label.value = (
+                                f"Processing: {timestamp}"
+                                if timestamp
+                                else "Processing..."
+                            )
+                            break
+                        except json.JSONDecodeError:
+                            pass
+            except requests.exceptions.RequestException:
+                pass
+
+            time.sleep(2)
+        except Exception as e:
+            log(f"Polling error: {e}")
+            return
+
+    match = re.search(r"Get output:\s+(http[^\s]+)", html)
+    if match:
+        output_url = match.group(1)
+        outputs.append(output_url)
+        log(f"Output URL: {output_url}")
+    else:
+        log("Failed to extract output URL")
 
 
 def handle_run(arg):
@@ -315,3 +343,4 @@ control_box = Box(
     ],
     layout=box_layout,
 )
+results_box = VBox()
